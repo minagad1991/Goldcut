@@ -1948,7 +1948,8 @@ function savePrices(){
     if(val > 0) settings.prices[inp.dataset.product] = val;
   });
   saveSettings(settings);
-  showToast('✅ تم حفظ الأسعار');
+  if(window._cloudReady&&window.saveToCloud) window.saveToCloud(DB);
+  showToast('✅ تم حفظ الأسعار وتزامن السحابة');
 }
 
 function getProductPrice(productName){
@@ -2111,7 +2112,13 @@ function doLogin() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     load();if(!Array.isArray(DB.clients))DB.clients=[];
-    function tryCloud(){if(window.loadFromCloud){window.loadFromCloud().then(function(d){if(!d)return;['sales','clients','purchases','expenses','salaries','agents','warehouses','production'].forEach(function(k){if(d[k]&&d[k].length)DB[k]=d[k];});refresh();var e=document.getElementById('sync-status');if(e){e.textContent='☁ متزامن';e.style.color='#27AE60';}});}else setTimeout(tryCloud,2000);}tryCloud();
+    if(window.startLiveSync) window.startLiveSync();
+    function tryCloud(){if(window.loadFromCloud){window.loadFromCloud().then(function(d){if(!d)return;['sales','clients','purchases','expenses','salaries','agents','warehouses','production'].forEach(function(k){if(d[k]&&d[k].length)DB[k]=d[k];});
+        // حمّل الأسعار والمنتجات
+        if(d['settings']&&Object.keys(d['settings']).length){
+          try{ localStorage.setItem('gc_settings', JSON.stringify(d['settings'])); loadSettings(); }catch(e){}
+        }
+        refresh();var e=document.getElementById('sync-status');if(e){e.textContent='☁ متزامن';e.style.color='#27AE60';}});}else setTimeout(tryCloud,2000);}tryCloud();
     // إخفاء التبويبات حسب الصلاحيات
     var allPages = ['dashboard','clients','sales','purchases','production','agents','expenses','salaries'];
     allPages.forEach(function(pg){
@@ -2936,5 +2943,21 @@ function delSalary(rid) {
 <div id="gc-toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A6B3A;color:#fff;padding:10px 24px;border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none"></div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>try{firebase.initializeApp({apiKey:"AIzaSyAe9_2gVS6722WVWoyuvNkCVOgG1JEz6UA",authDomain:"gold-cut.firebaseapp.com",projectId:"gold-cut",storageBucket:"gold-cut.firebasestorage.app",messagingSenderId:"188580259476",appId:"1:188580259476:web:3ef360e3340a4609beb681"});var _db=firebase.firestore(),_cs=['sales','clients','purchases','expenses','salaries','agents','warehouses','production'];window.saveToCloud=function(DB){return Promise.all(_cs.map(function(c){return _db.collection('goldcut').doc(c).set({data:DB[c]||[]});})).then(function(){return true;}).catch(function(){return false;});};window.loadFromCloud=function(){return Promise.all(_cs.map(function(c){return _db.collection('goldcut').doc(c).get();})).then(function(ss){var r={};_cs.forEach(function(c,i){r[c]=ss[i].exists?ss[i].data().data||[]:[]; });return r;}).catch(function(){return null;});};window._cloudReady=true;setTimeout(function(){var e=document.getElementById('sync-status');if(e){e.textContent='☁ متصل';e.style.color='#27AE60';}},500);}catch(e){console.log('FB:',e.message);}</script>
+<script>try{firebase.initializeApp({apiKey:"AIzaSyAe9_2gVS6722WVWoyuvNkCVOgG1JEz6UA",authDomain:"gold-cut.firebaseapp.com",projectId:"gold-cut",storageBucket:"gold-cut.firebasestorage.app",messagingSenderId:"188580259476",appId:"1:188580259476:web:3ef360e3340a4609beb681"});var _db=firebase.firestore(),_cs=['sales','clients','purchases','expenses','salaries','agents','warehouses','production'];window.saveToCloud=function(DB){
+  var promises = _cs.map(function(c){return _db.collection('goldcut').doc(c).set({data:DB[c]||[]});});
+  // احفظ الإعدادات (الأسعار والمنتجات)
+  var settings = {};
+  try{ var s=localStorage.getItem('gc_settings'); if(s) settings=JSON.parse(s); }catch(e){}
+  promises.push(_db.collection('goldcut').doc('settings').set(settings));
+  return Promise.all(promises).then(function(){return true;}).catch(function(){return false;});
+};window.loadFromCloud=function(){
+  var promises = _cs.map(function(c){return _db.collection('goldcut').doc(c).get();});
+  promises.push(_db.collection('goldcut').doc('settings').get());
+  return Promise.all(promises).then(function(ss){
+    var r={};
+    _cs.forEach(function(c,i){r[c]=ss[i].exists?ss[i].data().data||[]:[]; });
+    r['settings']=ss[ss.length-1].exists?ss[ss.length-1].data():{};
+    return r;
+  }).catch(function(){return null;});
+};window._cloudReady=true;setTimeout(function(){var e=document.getElementById('sync-status');if(e){e.textContent='☁ متصل';e.style.color='#27AE60';}},500);}catch(e){console.log('FB:',e.message);}</script>
 </body></html>
