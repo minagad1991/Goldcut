@@ -1350,8 +1350,8 @@ window.addEventListener('load', function(){
 });
 
 </script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
 <script>try{firebase.initializeApp({apiKey:"AIzaSyAe9_2gVS6722WVWoyuvNkCVOgG1JEz6UA",authDomain:"gold-cut.firebaseapp.com",projectId:"gold-cut",storageBucket:"gold-cut.firebasestorage.app",messagingSenderId:"188580259476",appId:"1:188580259476:web:3ef360e3340a4609beb681"});var _fdb=firebase.firestore();window.saveNewSaleToCloud=function(s){return _fdb.collection('goldcut').doc('sales').get().then(function(sn){var d=sn.exists?sn.data().data||[]:[];if(!d.find(function(x){return x.id==s.id;}))d.push(s);return _fdb.collection('goldcut').doc('sales').set({data:d});})};window.savePaymentToCloud=function(id,p,dt,ps){return _fdb.collection('goldcut').doc('sales').get().then(function(sn){var d=sn.exists?sn.data().data||[]:[];var i=d.findIndex(function(x){return x.id==id;});if(i>-1){d[i].paidAmount=p;d[i].paidDate=dt;d[i].payments=ps;if(p>=d[i].amount)d[i].status='paid';}return _fdb.collection('goldcut').doc('sales').set({data:d});})};window.loadCloudData=function(){return Promise.all(['sales','clients','warehouses','settings'].map(function(c){return _fdb.collection('goldcut').doc(c).get();})).then(function(ss){return{sales:ss[0].exists?ss[0].data().data||[]:[],clients:ss[1].exists?ss[1].data().data||[]:[],warehouses:ss[2].exists?ss[2].data().data||[]:[],settings:ss[3].exists?ss[3].data():{}};})};window._cloudReady=true;var _ce=document.getElementById('cloud-status');if(_ce){_ce.textContent='☁';_ce.title='متصل';};}catch(e){console.log('FB:',e.message);}</script>
 </body>
 </html>
