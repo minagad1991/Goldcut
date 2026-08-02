@@ -1,4 +1,4 @@
-const CACHE = 'goldcut-v1';
+const CACHE = 'goldcut-v2';
 const FILES = ['./goldcut_sales_app.html'];
 
 self.addEventListener('install', e => {
@@ -17,8 +17,17 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Network-First: يجيب النسخة الأحدث من الإنترنت أولاً
+// لو مفيش نت، يرجع للنسخة المحفوظة كاحتياط بس
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+    fetch(e.request)
+      .then(response => {
+        // حدّث النسخة المحفوظة بأحدث نسخة من السيرفر
+        const clone = response.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
