@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/Mina/Downloads/goldcut_accounts_70.html -->
+<!-- saved from url=(0056)file:///C:/Users/Mina/Downloads/goldcut_accounts_72.html -->
 <html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +51,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
 
 /* CARDS ROW */
 .cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+.wh-balance-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .kpi-card{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .kpi-card.gold::before{background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold2));}
@@ -154,6 +155,26 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
   .prod-stats{grid-template-columns:2fr 2fr;}
   .topbar{overflow-x:auto;gap:2px;}
   .nav-btn{font-size:11px;padding:5px 7px;}
+  .wh-balance-row{grid-template-columns:1fr;}
+
+  /* اللوجين على شاشة صغيرة */
+  .login-card{width:88vw;max-width:340px;padding:24px;}
+  .login-logo{font-size:36px;}
+
+  /* الصفحات والسكشنز */
+  .page{padding:10px;}
+  .section-body{padding:12px;}
+  .section-hdr{padding:12px 14px;flex-wrap:wrap;gap:8px;}
+  .section-title{font-size:13px;}
+
+  /* الجداول: تفتح فيها سحب أفقي بدل ما تتكسر */
+  .section{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .data-table{min-width:640px;}
+
+  /* أزرار ومداخل أكبر للمس */
+  .btn{padding:11px 18px;font-size:14px;}
+  .form-field input,.form-field select,.form-field textarea{padding:11px 12px;font-size:14px;}
+  #wh-filter-wh,#wh-filter-type{width:100%;margin-top:6px;}
 }
 
 /* SALE MODAL */
@@ -398,29 +419,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
           <div class="form-field"><label>التاريخ</label><input type="date" id="prod-date"></div>
           <div class="form-field"><label>المنتج</label><select id="prod-name" style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:&#39;Tajawal&#39;,sans-serif;font-size:13px;color:var(--text);outline:none">
               <option value="">اختر المنتج...</option>
-              <option value="لانشون لحمة جاف — 3 كيلو">لانشون لحمة جاف — 3 كيلو</option>
-<option value="لانشون لحمة جاف — 5 كيلو">لانشون لحمة جاف — 5 كيلو</option>
-<option value="لانشون لحمة مبرد — 5 كيلو">لانشون لحمة مبرد — 5 كيلو</option>
-<option value="لانشون فراخ جاف — 3 كيلو">لانشون فراخ جاف — 3 كيلو</option>
-<option value="لانشون فراخ مدخن — 5 كيلو">لانشون فراخ مدخن — 5 كيلو</option>
-<option value="لانشون روست رومي — 5 كيلو">لانشون روست رومي — 5 كيلو</option>
-<option value="فصوص رومي مدخن بالبابريكا">فصوص رومي مدخن بالبابريكا</option>
-<option value="فصوص رومي مدخن بالزعتر">فصوص رومي مدخن بالزعتر</option>
-<option value="بيف بيكون">بيف بيكون</option>
-<option value="روزبيف مدخن">روزبيف مدخن</option>
-<option value="بسطرمة فاخر">بسطرمة فاخر</option>
-<option value="بيبروني">بيبروني</option>
-<option value="سلامي مدخن">سلامي مدخن</option>
-<option value="ستيك برجر — 400 جم">ستيك برجر — 400 جم</option>
-<option value="كفتة — 500 جم">كفتة — 500 جم</option>
-<option value="لحمة خضار — 500 جم">لحمة خضار — 500 جم</option>
-<option value="بفتيك — 500 جم">بفتيك — 500 جم</option>
-<option value="كبدة اسكندراني — 500 جم">كبدة اسكندراني — 500 جم</option>
-<option value="لحم مفروم — 500 جم">لحم مفروم — 500 جم</option>
-<option value="سجق شرقي — 450 جم">سجق شرقي — 450 جم</option>
-<option value="هوت دوج — 250 جم">هوت دوج — 250 جم</option>
-<option value="سوسيس لحمة — 250 جم">سوسيس لحمة — 250 جم</option>
-<option value="سوسيس فراخ — 250 جم">سوسيس فراخ — 250 جم</option>
             </select></div>
           <div class="form-field"><label>وزن الخامات (كجم)</label><input type="number" id="prod-raw" min="0" step="0.1" placeholder="0"></div>
           <div class="form-field"><label>الوزن الناتج الفعلي (كجم)</label><input type="number" id="prod-output" min="0" step="0.1" placeholder="0"></div>
@@ -500,7 +498,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
     </div>
 
     <!-- رصيد تفصيلي -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="wh-balance-row">
       <div class="section">
         <div class="section-hdr"><div class="section-title">🏭 رصيد ثلاجة السيوف</div></div>
         <div id="wh-soyof-balance" style="padding:8px"></div>
@@ -1652,6 +1650,15 @@ function whFillProducts(){
   });
 }
 
+function fillProdNameOptions(){
+  var sel = document.getElementById('prod-name');
+  if(!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">اختر المنتج...</option>' +
+    ALL_PRODUCTS.map(function(p){ return '<option value="'+p+'">'+p+'</option>'; }).join('');
+  if(current && ALL_PRODUCTS.indexOf(current) > -1) sel.value = current;
+}
+
 function addWhMove(){
   if(!Array.isArray(DB.warehouses)) DB.warehouses=[];
   var date    = document.getElementById('wh-date').value || today();
@@ -1905,21 +1912,27 @@ function addProduct(){
   if(ALL_PRODUCTS.indexOf(name) > -1){ alert('المنتج موجود'); return; }
   ALL_PRODUCTS.push(name);
   saveSettings();
+  if(window._cloudReady&&window.saveToCloud) window.saveToCloud(DB);
   inp.value = '';
   renderProductsList();
   renderPricesList();
+  fillProdNameOptions();
+  whFillProducts();
   // تحديث datalist
   populateClientSelect();
-  showToast('✅ منتج اتضاف');
+  showToast('✅ منتج اتضاف وتزامن مع السحابة');
 }
 
 function removeProduct(idx){
   if(!confirm('مسح: '+ALL_PRODUCTS[idx]+'?')) return;
   ALL_PRODUCTS.splice(idx, 1);
   saveSettings();
+  if(window._cloudReady&&window.saveToCloud) window.saveToCloud(DB);
   renderProductsList();
   renderPricesList();
-  showToast('✅ منتج اتمسح');
+  fillProdNameOptions();
+  whFillProducts();
+  showToast('✅ منتج اتمسح وتزامن مع السحابة');
 }
 
 // ── الأسعار ─────────────────────────────────
@@ -1948,6 +1961,8 @@ function savePrices(){
   });
   saveSettings(settings);
   if(window._cloudReady&&window.saveToCloud) window.saveToCloud(DB);
+  fillProdNameOptions();
+  whFillProducts();
   showToast('✅ تم حفظ الأسعار وتزامن السحابة');
 }
 
@@ -2023,7 +2038,7 @@ function addUser(){
   var pagesMap = {
     admin: ['dashboard','clients','sales','purchases','production','agents','expenses','salaries','settings'],
     sales: ['clients','sales'],
-    store: ['store','production'],
+    store: ['warehouses','production'],
     accounts: ['dashboard','clients','sales','purchases','expenses','salaries']
   };
   USERS[name] = {pass:pass, role:role, pages:pagesMap[role]||['sales']};
@@ -2096,7 +2111,7 @@ function id() { return Date.now() + Math.random(); }
 // ══════════════════════════════════════════════
 var USERS = {
   'Goldcut':  {pass:'123', role:'admin',    pages:['dashboard','clients','sales','purchases','production','warehouses','agents','expenses','salaries','settings']},
-  'مخزن':    {pass:'456', role:'store',    pages:['store','production']},
+  'مخزن':    {pass:'456', role:'store',    pages:['warehouses','production']},
   'مبيعات':  {pass:'789', role:'sales',    pages:['clients','sales']},
   'محاسب':   {pass:'321', role:'accounts', pages:['dashboard','clients','sales','purchases','expenses','salaries']},
 };
@@ -2117,9 +2132,11 @@ function doLogin() {
         if(d['settings']&&Object.keys(d['settings']).length){
           try{ localStorage.setItem('gc_settings', JSON.stringify(d['settings'])); loadSettings(); }catch(e){}
         }
+        fillProdNameOptions();
+        whFillProducts();
         refresh();var e=document.getElementById('sync-status');if(e){e.textContent='☁ متزامن';e.style.color='#27AE60';}});}else setTimeout(tryCloud,2000);}tryCloud();
     // إخفاء التبويبات حسب الصلاحيات
-    var allPages = ['dashboard','clients','sales','purchases','production','agents','expenses','salaries'];
+    var allPages = ['dashboard','clients','sales','purchases','production','warehouses','settings','agents','expenses','salaries'];
     allPages.forEach(function(pg){
       var btn = document.getElementById('nav-'+pg);
       if(btn) btn.style.display = user.pages.indexOf(pg)>=0 ? '' : 'none';
@@ -2681,6 +2698,7 @@ function addProduction() {
 }
 
 function renderProduction() {
+  fillProdNameOptions();
   const data = [...DB.production].sort((a,b) => (b.date||'').localeCompare(a.date||''));
   const el = document.getElementById('production-list');
   if (!data.length) { el.innerHTML = `<div class="empty">لا يوجد وجبات إنتاج هذا الشهر</div>`; return; }
@@ -2940,8 +2958,8 @@ function delSalary(rid) {
 
 
 <div id="gc-toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A6B3A;color:#fff;padding:10px 24px;border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none"></div>
-<script src="./goldcut_accounts_files/firebase-app-compat.min.js.download"></script>
-<script src="./goldcut_accounts_files/firebase-firestore-compat.min.js.download"></script>
+<script src="file:///C:/Users/Mina/Downloads/goldcut_accounts_files/firebase-app-compat.min.js.download"></script>
+<script src="file:///C:/Users/Mina/Downloads/goldcut_accounts_files/firebase-firestore-compat.min.js.download"></script>
 <script>try{firebase.initializeApp({apiKey:"AIzaSyAe9_2gVS6722WVWoyuvNkCVOgG1JEz6UA",authDomain:"gold-cut.firebaseapp.com",projectId:"gold-cut",storageBucket:"gold-cut.firebasestorage.app",messagingSenderId:"188580259476",appId:"1:188580259476:web:3ef360e3340a4609beb681"});var _db=firebase.firestore(),_cs=['sales','clients','purchases','expenses','salaries','agents','warehouses','production'];window.saveToCloud=function(DB){
   var promises = _cs.map(function(c){return _db.collection('goldcut').doc(c).set({data:DB[c]||[]});});
   // احفظ الإعدادات (الأسعار والمنتجات)
