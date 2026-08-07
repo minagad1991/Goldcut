@@ -3143,5 +3143,15 @@ function delSalary(rid) {
     r['settings']=ss[ss.length-1].exists?ss[ss.length-1].data():{};
     return r;
   }).catch(function(){return null;});
-};window._cloudReady=true;setTimeout(function(){var e=document.getElementById('fb-status');if(e){e.textContent='☁ متصل';e.style.color='#27AE60';}},500);}catch(e){console.log('FB:',e.message);}</script>
+};window._cloudReady=true;setTimeout(function(){var e=document.getElementById('fb-status');if(e){e.textContent='☁ متصل';e.style.color='#27AE60';}},500);
+// جيب بيانات المستخدمين والإعدادات من السحابة فورًا عند فتح الصفحة
+// عشان تسجيل الدخول يشتغل صح حتى لو الجهاز ده أول مرة يفتح فيه النظام
+try{
+  window.loadFromCloud().then(function(d){
+    if(d && d['settings'] && Object.keys(d['settings']).length){
+      try{ localStorage.setItem('gc_settings', JSON.stringify(d['settings'])); if(window.loadSettings) loadSettings(); }catch(e){}
+    }
+  });
+}catch(e){}
+}catch(e){console.log('FB:',e.message);}</script>
 </body></html>
