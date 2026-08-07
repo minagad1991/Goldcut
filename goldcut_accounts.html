@@ -35,15 +35,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
 #app{display:none;min-height:100vh;}
 
 /* TOP BAR */
-.topbar{background:var(--dark2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;height:52px;}
-.topbar-logo{font-size:18px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-left:auto;padding-right:12px;border-right:1px solid var(--border);}
-.nav-btn{background:none;border:none;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--text2);cursor:pointer;padding:6px 10px;border-radius:6px;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.topbar{background:var(--dark2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;display:flex;flex-direction:column;}
+.topbar-brand-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--border);gap:10px;}
+.topbar-nav-row{display:flex;align-items:center;gap:4px;padding:6px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.topbar-logo{font-size:16px;font-weight:900;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
+.nav-btn{background:none;border:none;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--text2);cursor:pointer;padding:6px 10px;border-radius:6px;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .nav-btn:hover{background:var(--dark3);color:var(--text);}
 .nav-btn.active{background:rgba(201,168,76,.15);color:var(--gold);font-weight:700;}
 .nav-btn .icon{font-size:14px;}
-.topbar-right{display:flex;align-items:center;gap:8px;margin-right:auto;}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0;}
 .month-select{background:var(--dark3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--text);outline:none;}
-.logout-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--text2);cursor:pointer;}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
 
 /* PAGES */
 .page{display:none;padding:20px;max-width:1400px;margin:0 auto;}
@@ -177,7 +179,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
   .form-grid{grid-template-columns:1fr;}
   .summary-grid{grid-template-columns:1fr;}
   .prod-stats{grid-template-columns:2fr 2fr;}
-  .topbar{overflow-x:auto;gap:2px;}
+  .topbar-nav-row{gap:2px;}
+  .topbar-brand-row{padding:6px 10px;flex-wrap:wrap;}
+  .topbar-logo{font-size:14px;}
+  .logout-btn{font-size:11px;padding:5px 9px;}
   .nav-btn{font-size:11px;padding:5px 7px;}
   .wh-balance-row{grid-template-columns:1fr;}
 
@@ -198,6 +203,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
   /* أزرار ومداخل أكبر للمس */
   .btn{padding:11px 18px;font-size:14px;}
   .form-field input,.form-field select,.form-field textarea{padding:11px 12px;font-size:14px;}
+  .form-field label{font-size:11px;}
+  .form-grid{gap:14px;}
   #wh-filter-wh,#wh-filter-type{width:100%;margin-top:6px;}
 
   /* بنود الفاتورة: تصميم بطاقة على الموبايل بدل جدول مزنوق */
@@ -242,30 +249,37 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
 <!-- APP -->
 <div id="app" style="display:none">
   <div class="topbar">
-    <div class="topbar-right">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <select class="month-select" id="monthSel" onchange="refresh()"></select>
-      <span style="font-size:11px;color:var(--text2)">أو من:</span>
-      <input type="date" id="dash-from" style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:Tajawal,sans-serif;font-size:11px;color:var(--text)" onchange="refreshRange()">
-      <span style="font-size:11px;color:var(--text2)">→</span>
-      <input type="date" id="dash-to" style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:Tajawal,sans-serif;font-size:11px;color:var(--text)" onchange="refreshRange()">
+    <div class="topbar-brand-row">
+      <div class="topbar-logo">GOLDCUT</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="fb-status" style="font-size:11px;color:#555;white-space:nowrap">☁️ جاري التحميل...</span>
+        <button class="logout-btn" onclick="loadFromFile()" style="color:var(--gold3)">📂 فتح</button>
+        <button class="logout-btn" onclick="saveToFile()" style="color:var(--gold);border-color:var(--gold3)">💾 حفظ</button>
+        <button class="logout-btn" onclick="doLogout()">خروج</button>
+      </div>
     </div>
+    <div class="topbar-nav-row">
+      <div class="topbar-right">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <select class="month-select" id="monthSel" onchange="refresh()"></select>
+        <span style="font-size:11px;color:var(--text2)">أو من:</span>
+        <input type="date" id="dash-from" style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:Tajawal,sans-serif;font-size:11px;color:var(--text)" onchange="refreshRange()">
+        <span style="font-size:11px;color:var(--text2)">→</span>
+        <input type="date" id="dash-to" style="background:var(--dark3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:Tajawal,sans-serif;font-size:11px;color:var(--text)" onchange="refreshRange()">
+      </div>
+      </div>
+      <button class="nav-btn" onclick="showPage('clients')" id="nav-clients"><span class="icon">👥</span>العملاء</button>
+      <button class="nav-btn" onclick="showPage('report')" id="nav-report"><span class="icon">📊</span>تقريري</button>
+      <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="icon">📊</span>لوحة التحكم</button>
+      <button class="nav-btn" onclick="showPage('sales')" id="nav-sales"><span class="icon">💰</span>المبيعات</button>
+      <button class="nav-btn" onclick="showPage('purchases')" id="nav-purchases"><span class="icon">🛒</span>المشتريات</button>
+      <button class="nav-btn" onclick="showPage('production')" id="nav-production"><span class="icon">🏭</span>الإنتاج</button>
+      <button class="nav-btn" onclick="showPage('warehouses')" id="nav-warehouses">🏭 المخازن</button>
+      <button class="nav-btn" onclick="showPage('settings')" id="nav-settings">⚙️ إعدادات</button>
+      <button class="nav-btn" onclick="showPage('agents')" id="nav-agents"><span class="icon">🚗</span>المناديب</button>
+      <button class="nav-btn" onclick="showPage('expenses')" id="nav-expenses"><span class="icon">📋</span>المصاريف</button>
+      <button class="nav-btn" onclick="showPage('salaries')" id="nav-salaries"><span class="icon">👷</span>المرتبات</button>
     </div>
-    <button class="nav-btn" onclick="showPage(&#39;clients&#39;)" id="nav-clients"><span class="icon">👥</span>العملاء</button>
-    <button class="nav-btn active" onclick="showPage(&#39;dashboard&#39;)" id="nav-dashboard"><span class="icon">📊</span>لوحة التحكم</button>
-    <button class="nav-btn" onclick="showPage(&#39;sales&#39;)" id="nav-sales"><span class="icon">💰</span>المبيعات</button>
-    <button class="nav-btn" onclick="showPage(&#39;purchases&#39;)" id="nav-purchases"><span class="icon">🛒</span>المشتريات</button>
-    <button class="nav-btn" onclick="showPage(&#39;production&#39;)" id="nav-production"><span class="icon">🏭</span>الإنتاج</button>
-    <button class="nav-btn" onclick="showPage(&#39;warehouses&#39;)" id="nav-warehouses">🏭 المخازن</button>
-    <button class="nav-btn" onclick="showPage(&#39;settings&#39;)" id="nav-settings">⚙️ إعدادات</button>
-    <button class="nav-btn" onclick="showPage(&#39;agents&#39;)" id="nav-agents"><span class="icon">🚗</span>المناديب</button>
-    <button class="nav-btn" onclick="showPage(&#39;expenses&#39;)" id="nav-expenses"><span class="icon">📋</span>المصاريف</button>
-    <button class="nav-btn" onclick="showPage(&#39;salaries&#39;)" id="nav-salaries"><span class="icon">👷</span>المرتبات</button>
-    <div class="topbar-logo">GOLDCUT</div>
-    <span id="fb-status" style="font-size:11px;color:#555;white-space:nowrap">☁️ جاري التحميل...</span>
-    <button class="logout-btn" onclick="loadFromFile()" style="color:var(--gold3)">📂 فتح</button>
-    <button class="logout-btn" onclick="saveToFile()" style="color:var(--gold);border-color:var(--gold3)">💾 حفظ</button>
-    <button class="logout-btn" onclick="doLogout()">خروج</button>
   </div>
 
   <!-- ══ DASHBOARD ══ -->
@@ -343,6 +357,21 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
 
     <!-- قائمة العملاء -->
     <div id="clients-list"></div>
+  </div>
+
+  <!-- ══ REPORT (المندوب) ══ -->
+  <div class="page" id="page-report">
+    <div class="section">
+      <div class="section-hdr"><div class="section-title">📊 تقريري</div></div>
+      <div class="section-body">
+        <div class="form-grid" style="margin-bottom:14px">
+          <div class="form-field"><label>من تاريخ</label><input type="date" id="rep-from" onchange="renderAgentReport()"></div>
+          <div class="form-field"><label>إلى تاريخ</label><input type="date" id="rep-to" onchange="renderAgentReport()"></div>
+        </div>
+        <div id="report-content"></div>
+        <button class="btn" style="width:100%;background:var(--dark3);border:1px solid var(--gold3);color:var(--gold);margin-top:10px" onclick="printAgentReport()">🖨️ طباعة التقرير</button>
+      </div>
+    </div>
   </div>
 
   <!-- ══ SALES ══ -->
@@ -887,6 +916,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn success" id="sm-pay-btn" onclick="payFromModal()">💰 قيد دفعة</button>
+        <button class="btn" style="background:var(--dark3);border:1px solid var(--gold3);color:var(--gold)" onclick="printSaleInvoice(true)">🖨️ طباعة إيصال</button>
         <button class="btn secondary" onclick="closeSaleModal()">إغلاق</button>
       </div>
     </div>
@@ -1242,6 +1272,81 @@ function printSaleInvoice(receiptMode){
   setTimeout(function(){w.print();},400);
 }
 
+// ── تقرير المندوب ─────────────────────────────
+function renderAgentReport(){
+  var el = document.getElementById('report-content');
+  if(!el) return;
+  var from = document.getElementById('rep-from').value;
+  var to = document.getElementById('rep-to').value;
+  var agentName = currentUser ? currentUser.agentName : null;
+  var myInvs = DB.sales.filter(function(r){
+    if(agentName && r.agent !== agentName) return false;
+    if(from && r.date < from) return false;
+    if(to && r.date > to) return false;
+    return true;
+  });
+  var totalSales = myInvs.reduce(function(a,r){ return a+r.amount; },0);
+  var totalPaid = myInvs.reduce(function(a,r){ return a+(r.type==='cash'?r.amount:(r.paidAmount||0)); },0);
+  var totalRet = myInvs.reduce(function(a,r){ return a+((r.returnItems||[]).reduce(function(x,i){return x+i.total;},0)); },0);
+  var totalBal = totalSales - totalPaid - totalRet;
+
+  var html = '<div class="cards-row">'+
+    '<div class="kpi-card gold"><div class="kpi-label">إجمالي المبيعات</div><div class="kpi-val gold">'+fmtMoney(totalSales)+'</div></div>'+
+    '<div class="kpi-card green"><div class="kpi-label">المحصل</div><div class="kpi-val green">'+fmtMoney(totalPaid)+'</div></div>'+
+    '<div class="kpi-card red"><div class="kpi-label">المرتجعات</div><div class="kpi-val red">'+fmtMoney(totalRet)+'</div></div>'+
+    '<div class="kpi-card blue"><div class="kpi-label">الباقي على العملاء</div><div class="kpi-val" style="color:'+(totalBal>0?'var(--red2)':'var(--green2)')+'">'+fmtMoney(totalBal)+'</div></div>'+
+  '</div>';
+  html += '<div style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:10px">'+myInvs.length+' فاتورة</div>';
+  html += '<table class="data-table"><thead><tr><th>التاريخ</th><th>العميل</th><th>الإجمالي</th><th>المدفوع</th><th>الباقي</th></tr></thead><tbody>';
+  myInvs.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).forEach(function(r){
+    var paid = r.type==='cash'?r.amount:(r.paidAmount||0);
+    var rets = (r.returnItems||[]).reduce(function(a,i){return a+i.total;},0);
+    var bal = r.amount - paid - rets;
+    html += '<tr><td>'+r.date+'</td><td>'+r.client+'</td>'+
+      '<td class="num gold">'+fmtMoney(r.amount)+'</td>'+
+      '<td class="num green">'+fmtMoney(paid)+'</td>'+
+      '<td class="num" style="color:'+(bal>0?'var(--red2)':'var(--green2)')+'">'+fmtMoney(bal)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function printAgentReport(){
+  var from = document.getElementById('rep-from').value;
+  var to = document.getElementById('rep-to').value;
+  var agentName = currentUser ? currentUser.agentName : null;
+  var myInvs = DB.sales.filter(function(r){
+    if(agentName && r.agent !== agentName) return false;
+    if(from && r.date < from) return false;
+    if(to && r.date > to) return false;
+    return true;
+  });
+  var total = myInvs.reduce(function(a,r){ return a+r.amount; },0);
+  var paid = myInvs.reduce(function(a,r){ return a+(r.type==='cash'?r.amount:(r.paidAmount||0)); },0);
+  var ret = myInvs.reduce(function(a,r){ return a+((r.returnItems||[]).reduce(function(x,i){return x+i.total;},0)); },0);
+  var w = window.open('','_blank');
+  var d = w.document;
+  d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>تقرير</title>');
+  d.write('<style>body{direction:rtl;font-family:Arial,sans-serif;padding:20px;font-size:12pt;}table{width:100%;border-collapse:collapse;}th{background:#1A1A1A;color:#C9A84C;padding:8px;}td{padding:7px;border-bottom:1px solid #eee;}@media print{button{display:none;}}</style></head><body>');
+  d.write('<h2 style="color:#C9A84C">تقرير المندوب: '+(agentName||currentUser.name)+'</h2>');
+  d.write('<p>الفترة: '+(from||'البداية')+' → '+(to||'النهاية')+' | الفواتير: '+myInvs.length+'</p>');
+  d.write('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0">');
+  d.write('<div style="background:#f9f9f9;padding:10px;border-radius:8px;text-align:center"><div style="font-size:9pt;color:#888">المبيعات</div><div style="font-size:18pt;font-weight:700;color:#C9A84C">'+total.toLocaleString('ar-EG')+'</div></div>');
+  d.write('<div style="background:#f9f9f9;padding:10px;border-radius:8px;text-align:center"><div style="font-size:9pt;color:#888">المحصل</div><div style="font-size:18pt;font-weight:700;color:green">'+paid.toLocaleString('ar-EG')+'</div></div>');
+  d.write('<div style="background:#f9f9f9;padding:10px;border-radius:8px;text-align:center"><div style="font-size:9pt;color:#888">مرتجعات</div><div style="font-size:18pt;font-weight:700;color:red">'+ret.toLocaleString('ar-EG')+'</div></div>');
+  d.write('</div>');
+  d.write('<table><thead><tr><th>التاريخ</th><th>العميل</th><th>الإجمالي</th><th>المدفوع</th><th>الباقي</th></tr></thead><tbody>');
+  myInvs.sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(r){
+    var p2 = r.type==='cash'?r.amount:(r.paidAmount||0);
+    var rt = (r.returnItems||[]).reduce(function(a,i){return a+i.total;},0);
+    var b = r.amount - p2 - rt;
+    d.write('<tr><td>'+r.date+'</td><td>'+r.client+'</td><td style="color:#C9A84C;font-weight:700">'+r.amount.toLocaleString('ar-EG')+'</td><td style="color:green">'+p2.toLocaleString('ar-EG')+'</td><td style="color:'+(b>0?'red':'green')+'">'+b.toLocaleString('ar-EG')+'</td></tr>');
+  });
+  d.write('</tbody></table>');
+  d.close();
+  setTimeout(function(){ w.print(); }, 400);
+}
+
 
 // ════════════════════════════════════════════
 // CLIENT EDIT MODAL
@@ -1373,45 +1478,6 @@ function payFromModal(){
   if(r.paidAmount>=r.amount) r.status='paid';
   save(); openSaleModal(_curSaleId); renderSales('all'); renderDashboard();
   showToast('✅ دفعة اتسجلت');
-}
-
-function printSaleInvoice(){
-  var r = DB.sales.find(function(x){ return x.id==_curSaleId; });
-  if(!r) return;
-  var paid=r.type==='cash'?r.amount:(r.paidAmount||0);
-  var rets=(r.returnItems||[]).reduce(function(a,i){return a+i.total;},0)||(r.returnAmount||0);
-  var bal=r.amount-paid-rets;
-  var w=window.open('','_blank');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>فاتورة</title>');
-  w.document.write('<style>*{font-family:Arial,sans-serif;font-weight:bold;}body{direction:rtl;margin:0;padding:24px;color:#111;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:16px;}thead th{background:#1A1A1A;color:#C9A84C;padding:10px;}tbody td{padding:9px 10px;border-bottom:1px solid #eee;}tr:nth-child(even){background:#FAFAFA}<\/style>');
-  w.document.write('</head><body><div style="max-width:750px;margin:0 auto">');
-  w.document.write('<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid #C9A84C;padding-bottom:14px;margin-bottom:18px">');
-  w.document.write('<div><h1 style="color:#C9A84C;font-size:32px;margin:0;letter-spacing:5px">GOLD CUT</h1><p style="color:#888;font-size:10px;margin:4px 0 0;letter-spacing:2px">PREMIUM QUALITY MEATS</p></div>');
-  w.document.write('<div style="text-align:left;background:#FFFDF5;border:2px solid #C9A84C;border-radius:8px;padding:10px 18px"><div style="font-size:12px;color:#888">فاتورة مبيعات</div><div style="font-size:12px;color:#666;margin-top:4px">التاريخ: '+r.date+'</div>'+(r.due?'<div style="font-size:12px;color:#C0392B">السداد: '+r.due+'</div>':'')+'</div></div>');
-  w.document.write('<div style="display:flex;gap:20px;background:#FFFDF5;border:1px solid #EAD898;border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:13px">');
-  w.document.write('<div>العميل: <span style="color:#C9A84C;font-size:15px">'+r.client+'</span></div>');
-  w.document.write('<div>المندوب: '+(r.agent||'—')+'</div>');
-  w.document.write('<div>الدفع: '+(r.type==='cash'?'كاش':'آجل')+'</div>');
-  w.document.write('<div>الحالة: '+(bal<=0?'مدفوع':'باقي '+bal.toLocaleString('ar-EG')+' ج')+'</div></div>');
-  w.document.write('<table><thead><tr><th style="text-align:right">المنتج</th><th>الكمية</th><th>السعر</th><th>خصم%</th><th>الإجمالي</th></tr></thead><tbody>');
-  (r.items||[]).forEach(function(item){
-    var sub=item.qty*item.price; var net=sub-sub*(item.discount||0)/100;
-    w.document.write('<tr><td>'+item.product+'</td><td style="text-align:center">'+item.qty+'</td><td style="text-align:center">'+item.price.toLocaleString('ar-EG')+'</td><td style="text-align:center">'+(item.discount||0)+'%</td><td style="text-align:center;color:#1A6B3A">'+net.toLocaleString('ar-EG')+'</td></tr>');
-  });
-  (r.returnItems||[]).forEach(function(ri){
-    w.document.write('<tr style="background:#FFF0F0"><td style="color:#C0392B">↩ مرتجع: '+ri.product+'</td><td style="text-align:center">'+ri.qty+'</td><td style="text-align:center">'+ri.price.toLocaleString('ar-EG')+'</td><td>—</td><td style="text-align:center;color:#C0392B">- '+ri.total.toLocaleString('ar-EG')+'</td></tr>');
-  });
-  w.document.write('</tbody></table>');
-  w.document.write('<div style="background:#FFFDF5;border:1px solid #EAD898;border-radius:8px;padding:14px;margin-bottom:14px">');
-  if(rets>0) w.document.write('<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#C0392B"><span>المرتجعات</span><span>- '+rets.toLocaleString('ar-EG')+' ج</span></div>');
-  w.document.write('<div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:3px solid #C9A84C;margin-top:6px"><span style="font-size:16px">الإجمالي</span><span style="font-size:24px;color:#C9A84C">'+r.amount.toLocaleString('ar-EG')+' ج</span></div>');
-  if(paid>0) w.document.write('<div style="display:flex;justify-content:space-between;padding:4px 0;color:green"><span>المدفوع</span><span>'+paid.toLocaleString('ar-EG')+' ج</span></div>');
-  if(bal>0) w.document.write('<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:15px;color:#C0392B"><span>الباقي</span><span>'+bal.toLocaleString('ar-EG')+' ج</span></div>');
-  w.document.write('</div>');
-  w.document.write('<div style="margin-top:30px;padding-top:12px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:12px;color:#999"><span>Gold Cut Factory</span><span>توقيع المستلم: ________________</span></div>');
-  w.document.write('</div>'); w.document.close();
-  w.document.close();
-  setTimeout(function(){w.print();},400);
 }
 
 function openClientModal(cid){
@@ -2161,7 +2227,7 @@ function addUser(){
     sales: ['clients','sales'],
     store: ['warehouses','production'],
     accounts: ['dashboard','clients','sales','purchases','expenses','salaries'],
-    agent: ['clients','sales']
+    agent: ['clients','sales','report']
   };
   USERS[name] = {pass:pass, role:role, pages:pagesMap[role]||['sales']};
   if(role==='agent') USERS[name].agentName = agentName;
@@ -2274,7 +2340,7 @@ function doLogin() {
         whFillProducts();
         refresh();var e=document.getElementById('fb-status');if(e){e.textContent='☁ متزامن';e.style.color='#27AE60';}});}else setTimeout(tryCloud,2000);}tryCloud();
     // إخفاء التبويبات حسب الصلاحيات
-    var allPages = ['dashboard','clients','sales','purchases','production','warehouses','settings','agents','expenses','salaries'];
+    var allPages = ['dashboard','clients','sales','purchases','production','warehouses','settings','agents','expenses','salaries','report'];
     allPages.forEach(function(pg){
       var btn = document.getElementById('nav-'+pg);
       if(btn) btn.style.display = user.pages.indexOf(pg)>=0 ? '' : 'none';
@@ -2358,6 +2424,7 @@ function renderPage(name) {
   else if (name === 'clients') { populateClientSelect(); renderClients(); }
   else if (name === 'dashboard') renderDashboard();
   else if (name === 'sales') { renderSaleProdGrid(); renderSaleItems(); renderSales('all'); }
+  else if (name === 'report') { renderAgentReport(); }
   else if (name === 'purchases') renderPurchases();
   else if (name === 'production') renderProduction();
   else if (name === 'store') renderStore();
