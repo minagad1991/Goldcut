@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/Mina/Downloads/goldcut_accounts_70.html -->
 <html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -166,13 +165,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
 .agent-name{font-size:14px;font-weight:700;}
 .agent-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
 
-/* STORE */
-.store-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;}
-.store-item:last-child{border-bottom:none;}
-.store-name{font-weight:600;}
-.store-qty{color:var(--phosphor);font-weight:700;}
-.store-val{color:var(--gold);font-weight:700;}
-
 /* TABS */
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;}
 .tab{background:none;border:none;border-bottom:2px solid transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:var(--text2);cursor:pointer;padding:8px 14px;margin-bottom:-1px;transition:all .2s;}
@@ -274,6 +266,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
       <button class="nav-btn" onclick="showPage('expenses')" id="nav-expenses"><span class="icon">📋</span>المصاريف</button>
       <button class="nav-btn" onclick="showPage('agents')" id="nav-agents"><span class="icon">🚗</span>المناديب</button>
       <button class="nav-btn" onclick="showPage('report')" id="nav-report"><span class="icon">📊</span>تقريري</button>
+      <button class="nav-btn" onclick="showPage('supervision')" id="nav-supervision"><span class="icon">🧑‍💼</span>إشراف</button>
       <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard"><span class="icon">📊</span>لوحة التحكم</button>
       <button class="nav-btn" onclick="showPage('settings')" id="nav-settings"><span class="icon">⚙️</span>إعدادات</button>
     </div>
@@ -386,6 +379,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
     </div>
   </div>
 
+  <!-- ══ SUPERVISION (إشراف) ══ -->
+  <div class="page" id="page-supervision">
+    <div id="supervision-content"></div>
+  </div>
+
   <!-- ══ VISITS (زيارات اليوم) ══ -->
   <div class="page" id="page-visits">
     <div class="section" id="visits-admin-form-section">
@@ -408,6 +406,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
       <div class="section-hdr"><div class="section-title" id="visits-list-title">🗓️ زيارات اليوم</div></div>
       <div class="section-body">
         <div id="visits-list"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-hdr"><div class="section-title">🎯 عملائي بالأولوية (الأقدم زيارة الأول)</div></div>
+      <div class="section-body">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">مرتبة تلقائي من الأقدم فاتورة (محتاج زيارة بقاله وقت) للأحدث فاتورة (اتزار مؤخرًا)</div>
+        <div id="priority-clients-list"></div>
       </div>
     </div>
   </div>
@@ -468,7 +474,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
             <div class="si-modal-name" id="sale-pm-name">المنتج</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px">
               <div>
-                <div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:6px">الكمية</div>
+                <div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:6px">الكمية (كجم)</div>
                 <input type="number" class="si-big-input" id="sale-pm-qty" min="0" step="0.1" placeholder="0" inputmode="decimal">
               </div>
               <div>
@@ -479,6 +485,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
                 <div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:6px">خصم%</div>
                 <input type="number" class="si-big-input" id="sale-pm-discount" min="0" max="100" step="0.5" placeholder="0" inputmode="decimal">
               </div>
+            </div>
+            <div style="margin-bottom:6px">
+              <div style="font-size:10px;color:var(--text2);text-align:center;margin-bottom:6px">عدد أكواز (اختياري)</div>
+              <input type="number" class="si-big-input" id="sale-pm-blocks" min="0" step="1" placeholder="0" inputmode="numeric" style="font-size:16px">
             </div>
             <div style="text-align:center;font-size:13px;color:var(--text2);margin-bottom:4px">الإجمالي: <span id="sale-pm-total" style="color:var(--gold);font-weight:900;font-size:17px">0 ج</span></div>
             <button class="si-add-btn" onclick="addToSaleCartFromModal()">➕ إضافة للفاتورة</button>
@@ -545,8 +555,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
               <option value="">بدون — إدخال يدوي</option>
             </select>
           </div>
+          <div class="form-field"><label>عدد الوجبات</label><input type="number" id="prod-batches" min="1" step="1" value="1" onchange="applyRecipeToProduction()" placeholder="1"></div>
           <div class="form-field"><label>وزن الخامات (كجم)</label><input type="number" id="prod-raw" min="0" step="0.1" placeholder="0"></div>
           <div class="form-field"><label>الوزن الناتج الفعلي (كجم)</label><input type="number" id="prod-output" min="0" step="0.1" placeholder="0"></div>
+          <div class="form-field"><label>عدد أكواز (اختياري)</label><input type="number" id="prod-blocks" min="0" step="1" placeholder="0"></div>
           <div class="form-field"><label>تكلفة الخامات (جنيه)</label><input type="number" id="prod-rawcost" min="0" step="0.5" placeholder="0"></div>
           <div class="form-field"><label>تكاليف تصنيع (جنيه)</label><input type="number" id="prod-mfgcost" min="0" step="0.5" placeholder="0"></div>
           <div class="form-field"><label>سعر بيع الكيلو (جنيه)</label><input type="number" id="prod-price" min="0" step="0.5" placeholder="0"></div>
@@ -581,7 +593,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
         <div class="form-grid">
           <div class="form-field"><label>التاريخ</label><input type="date" id="wh-date"></div>
           <div class="form-field"><label>المخزن</label>
-            <select id="wh-from">
+            <select id="wh-from" onchange="whFillPicker()">
               <option value="ثلاجة السيوف">ثلاجة السيوف</option>
               <option value="ثلاجة المصنع">ثلاجة المصنع</option>
             </select>
@@ -602,11 +614,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
             </select>
           </div>
 
-          <div class="form-field"><label>المنتج</label>
+          <div class="form-field" id="wh-product-free-wrap"><label>المنتج</label>
             <input type="text" id="wh-product" list="wh-products-list" placeholder="اكتب أول حرف..." autocomplete="off">
             <datalist id="wh-products-list"></datalist>
           </div>
-          <div class="form-field"><label>الكمية</label><input type="number" id="wh-qty" min="0" step="0.01" placeholder="0"></div>
+          <div class="form-field" id="wh-product-picker-wrap" style="display:none"><label>المنتج (المتاح في المخزن)</label>
+            <select id="wh-product-picker" onchange="whPickerSelected()">
+              <option value="">اختر منتج...</option>
+            </select>
+          </div>
+          <div class="form-field"><label>الكمية (كجم)</label><input type="number" id="wh-qty" min="0" step="0.01" placeholder="0"></div>
+          <div class="form-field"><label>عدد أكواز (اختياري)</label><input type="number" id="wh-blocks" min="0" step="1" placeholder="0"></div>
           <div class="form-field"><label>الوحدة</label>
             <select id="wh-unit">
               <option value="كجم">كجم</option>
@@ -798,6 +816,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--dark);color:var(--text);m
           <div class="form-field"><label>المرتب الثابت (جنيه/شهر)</label><input type="number" id="ag-salary" min="0" placeholder="0"></div>
           <div class="form-field"><label>نسبة العمولة %</label><input type="number" id="ag-commission" min="0" max="100" step="0.5" placeholder="0"></div>
           <div class="form-field"><label>إيجار العربية (جنيه/شهر)</label><input type="number" id="ag-vehicle" min="0" placeholder="0"></div>
+          <div class="form-field"><label>مشرف عليه (اختياري)</label>
+            <select id="ag-supervisor"><option value="">بدون مشرف</option></select>
+          </div>
+          <div class="form-field"><label>نسبة عمولة الإشراف % (لو هو نفسه مشرف على غيره)</label><input type="number" id="ag-supervision-rate" min="0" max="100" step="0.1" placeholder="0"></div>
         </div>
         <button class="btn primary" onclick="addAgent()">➕ إضافة مندوب</button>
       </div>
@@ -1198,7 +1220,7 @@ function printSaleInvoice(receiptMode){
     bodyHtml += '<tr><th>الصنف</th><th class="lft">ك</th><th class="lft">سعر</th><th class="lft">إجمالي</th></tr>';
     (r.items||[]).forEach(function(item){
       var sub=item.qty*item.price; var net=sub-sub*(item.discount||0)/100;
-      bodyHtml += '<tr><td>'+item.product+'</td><td class="lft">'+arDigits(item.qty)+'</td><td class="lft">'+arDigits(item.price)+'</td><td class="lft">'+arDigits(Math.round(net))+'</td></tr>';
+      bodyHtml += '<tr><td>'+item.product+(item.blocks?' ('+arDigits(item.blocks)+' كوز)':'')+'</td><td class="lft">'+arDigits(item.qty)+'</td><td class="lft">'+arDigits(item.price)+'</td><td class="lft">'+arDigits(Math.round(net))+'</td></tr>';
     });
     (r.returnItems||[]).forEach(function(ri){
       bodyHtml += '<tr><td>↩'+ri.product+'</td><td class="lft">'+arDigits(ri.qty)+'</td><td class="lft">-</td><td class="lft" style="color:red">-'+arDigits(Math.round(ri.total))+'</td></tr>';
@@ -1309,7 +1331,7 @@ function printSaleInvoiceA4(r, paid, rets, bal, clientCodeStr, agentPhone, FONT)
     d.write('<table><thead><tr><th style="text-align:right">المنتج</th><th>الكمية</th><th>السعر</th><th>خصم%</th><th>الإجمالي</th></tr></thead><tbody>');
     (r.items||[]).forEach(function(item){
       var sub=item.qty*item.price; var net=sub-sub*(item.discount||0)/100;
-      d.write('<tr><td>'+item.product+'</td><td style="text-align:center">'+arDigits(item.qty)+'</td><td style="text-align:center">'+item.price.toLocaleString('ar-EG')+'</td><td style="text-align:center">'+arDigits(item.discount||0)+'%</td><td style="text-align:center;color:#1A6B3A">'+net.toLocaleString('ar-EG')+'</td></tr>');
+      d.write('<tr><td>'+item.product+(item.blocks?' <span style="color:#888;font-size:11px">('+arDigits(item.blocks)+' كوز)</span>':'')+'</td><td style="text-align:center">'+arDigits(item.qty)+'</td><td style="text-align:center">'+item.price.toLocaleString('ar-EG')+'</td><td style="text-align:center">'+arDigits(item.discount||0)+'%</td><td style="text-align:center;color:#1A6B3A">'+net.toLocaleString('ar-EG')+'</td></tr>');
     });
     (r.returnItems||[]).forEach(function(ri){
       d.write('<tr style="background:#FFF0F0"><td style="color:#C0392B">↩ مرتجع: '+ri.product+'</td><td style="text-align:center">'+arDigits(ri.qty)+'</td><td style="text-align:center">'+ri.price.toLocaleString('ar-EG')+'</td><td>—</td><td style="text-align:center;color:#C0392B">- '+ri.total.toLocaleString('ar-EG')+'</td></tr>');
@@ -1344,6 +1366,55 @@ function printSaleInvoiceA4(r, paid, rets, bal, clientCodeStr, agentPhone, FONT)
 }
 
 // ── تقرير المندوب ─────────────────────────────
+// ── صفحة الإشراف: أداء وزيارات المناديب اللي تحت إشراف المستخدم ──
+function renderSupervisionPage(){
+  var el = document.getElementById('supervision-content');
+  if(!el) return;
+  var myName = currentUser ? currentUser.agentName : null;
+  var supervised = (DB.agents||[]).filter(function(a){ return a.supervisor === myName; });
+
+  if(!supervised.length){
+    el.innerHTML = '<div class="empty">إنت مش مشرف على أي مندوب حاليًا</div>';
+    return;
+  }
+
+  el.innerHTML = supervised.map(function(a){
+    var agSales = DB.sales.filter(function(r){ return r.agent === a.name; });
+    var salesTotal = agSales.reduce(function(x,r){ return x+r.amount; },0);
+    var paid = agSales.reduce(function(x,r){ return x+(r.type==='cash'?r.amount:(r.paidAmount||0)); },0);
+    var rets = agSales.reduce(function(x,r){ return x+((r.returnItems||[]).reduce(function(a,i){return a+i.total;},0)); },0);
+    var balance = salesTotal - paid - rets;
+    var myClients = DB.clients.filter(function(c){ return c.agent === a.name; });
+
+    var withDates = myClients.map(function(c){ return {client:c, lastDate:getClientLastSaleDate(c.name)}; });
+    withDates.sort(function(x,y){
+      var dx = x.lastDate || '0000-00-00', dy = y.lastDate || '0000-00-00';
+      return dx.localeCompare(dy);
+    });
+    var visitsHtml = withDates.slice(0,8).map(function(w){
+      var daysAgo = w.lastDate ? Math.round((new Date(today()) - new Date(w.lastDate)) / 86400000) : null;
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">'+
+        '<span>👤 '+w.client.name+'</span>'+
+        '<span style="color:var(--text2)">'+(w.lastDate ? daysAgo+' يوم' : '⚠️ لسه ما اتزارش')+'</span>'+
+      '</div>';
+    }).join('') || '<div style="font-size:12px;color:var(--text2)">لا يوجد عملاء</div>';
+
+    return '<div class="section" style="margin-bottom:14px">'+
+      '<div class="section-hdr"><div class="section-title">🚗 '+a.name+(a.phone?' — 📞 '+a.phone:'')+'</div></div>'+
+      '<div class="section-body">'+
+        '<div class="cards-row">'+
+          '<div class="kpi-card gold"><div class="kpi-label">المبيعات</div><div class="kpi-val gold">'+fmtMoney(salesTotal)+'</div></div>'+
+          '<div class="kpi-card green"><div class="kpi-label">المحصل</div><div class="kpi-val green">'+fmtMoney(paid)+'</div></div>'+
+          '<div class="kpi-card blue"><div class="kpi-label">الباقي</div><div class="kpi-val" style="color:'+(balance>0?'var(--red2)':'var(--green2)')+'">'+fmtMoney(balance)+'</div></div>'+
+          '<div class="kpi-card red"><div class="kpi-label">عدد الفواتير</div><div class="kpi-val">'+agSales.length+'</div></div>'+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--gold);font-weight:700;margin:10px 0 6px">🎯 عملاؤه بالأولوية (أقدم 8)</div>'+
+        visitsHtml+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
 function renderAgentReport(){
   var el = document.getElementById('report-content');
   if(!el) return;
@@ -1444,6 +1515,41 @@ function delVisit(vid){
   showToast('✅ اتمسحت');
 }
 
+// آخر تاريخ فاتورة لعميل معين (بيستخدم كمؤشر "آخر زيارة")
+function getClientLastSaleDate(clientName){
+  var mine = DB.sales.filter(function(r){ return r.client === clientName; });
+  if(!mine.length) return null;
+  return mine.reduce(function(a,r){ return (r.date||'') > a ? r.date : a; }, mine[0].date || '');
+}
+
+// قايمة عملاء مندوب معين مرتبة: الأقدم زيارة (أو ما اتزارش خالص) الأول
+function renderPriorityClients(agentName, elId){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  var myClients = DB.clients.filter(function(c){ return c.agent === agentName; });
+  var withDates = myClients.map(function(c){
+    return {client: c, lastDate: getClientLastSaleDate(c.name)};
+  });
+  withDates.sort(function(a,b){
+    var da = a.lastDate || '0000-00-00'; // ما اتزارش خالص = أولوية قصوى
+    var db = b.lastDate || '0000-00-00';
+    return da.localeCompare(db);
+  });
+  if(!withDates.length){
+    el.innerHTML = '<div class="empty">لا يوجد عملاء مسجلين تحت اسمك</div>';
+    return;
+  }
+  el.innerHTML = withDates.map(function(w){
+    var daysAgo = w.lastDate ? Math.round((new Date(today()) - new Date(w.lastDate)) / 86400000) : null;
+    return '<div class="si-cart-item">'+
+      '<div>'+
+        '<div class="si-cart-item-name">👤 '+w.client.name+'</div>'+
+        '<div class="si-cart-item-info">'+(w.lastDate ? 'آخر زيارة: '+w.lastDate+' ('+daysAgo+' يوم)' : '⚠️ لسه ما اتزارش خالص')+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
 function renderVisitsList(){
   var el = document.getElementById('visits-list');
   var titleEl = document.getElementById('visits-list-title');
@@ -1475,6 +1581,14 @@ function renderVisitsList(){
       (isAgent?'':'<button style="background:var(--red2);border:none;border-radius:6px;padding:6px 10px;color:#fff;cursor:pointer;font-size:12px" onclick="delVisit(\''+v.id+'\')">🗑</button>')+
     '</div>';
   }).join('');
+
+  // قايمة الأولوية: للمندوب عملاءه هو، للأدمن يقدر يشوفها من صفحة المناديب لكل مندوب
+  if(isAgent){
+    renderPriorityClients(currentUser.agentName, 'priority-clients-list');
+  } else {
+    var prEl = document.getElementById('priority-clients-list');
+    if(prEl) prEl.innerHTML = '<div class="empty">القايمة دي خاصة بكل مندوب في حسابه — أو من تاب "إشراف" لو بتشرف على مناديب</div>';
+  }
 }
 
 // ── تحصيل: كل الفواتير الآجلة الغير محصلة بالكامل ──
@@ -1980,6 +2094,36 @@ function whToggleFields(){
   var type = document.getElementById('wh-move-type').value;
   var toWrap = document.getElementById('wh-to-wrap');
   if(toWrap) toWrap.style.display = type==='transfer' ? '' : 'none';
+
+  var isTransfer = type==='transfer';
+  var freeWrap = document.getElementById('wh-product-free-wrap');
+  var pickerWrap = document.getElementById('wh-product-picker-wrap');
+  if(freeWrap) freeWrap.style.display = isTransfer ? 'none' : '';
+  if(pickerWrap) pickerWrap.style.display = isTransfer ? '' : 'none';
+  if(isTransfer) whFillPicker();
+}
+
+// يعبي قايمة "المنتج المتاح" بناءً على رصيد المخزن المصدر الحالي
+function whFillPicker(){
+  var sel = document.getElementById('wh-product-picker');
+  var fromWh = document.getElementById('wh-from') ? document.getElementById('wh-from').value : '';
+  if(!sel) return;
+  var bal = getWhBalance(fromWh);
+  var entries = Object.entries(bal).filter(function(e){ return Math.round(e[1].qty*100)!==0; });
+  entries.sort(function(a,b){ return a[0].localeCompare(b[0]); });
+  sel.innerHTML = '<option value="">اختر منتج...</option>' + entries.map(function(e){
+    var qtyLabel = Math.round(e[1].qty*100)/100;
+    return '<option value="'+e[0]+'" data-qty="'+e[1].qty+'" data-unit="'+e[1].unit+'">'+e[0]+' — المتاح: '+qtyLabel+' '+e[1].unit+'</option>';
+  }).join('');
+}
+
+// لما يختار منتج من القايمة، نعبي وحدته تلقائي (والكمية تفضل هو اللي يكتبها بنفسه)
+function whPickerSelected(){
+  var sel = document.getElementById('wh-product-picker');
+  var opt = sel.selectedOptions[0];
+  if(!opt || !opt.dataset.unit) return;
+  var unitSel = document.getElementById('wh-unit');
+  if(unitSel) unitSel.value = opt.dataset.unit;
 }
 
 function whFillProducts(){
@@ -2006,12 +2150,15 @@ function addWhMove(){
   var from    = document.getElementById('wh-from').value;
   var mtype   = document.getElementById('wh-move-type').value;
   var to      = document.getElementById('wh-to') ? document.getElementById('wh-to').value : '';
-  var product = document.getElementById('wh-product').value.trim();
+  var product = mtype==='transfer'
+    ? document.getElementById('wh-product-picker').value
+    : document.getElementById('wh-product').value.trim();
   var qty     = parseFloat(document.getElementById('wh-qty').value)||0;
+  var blocks  = parseFloat(document.getElementById('wh-blocks').value)||0;
   var unit    = document.getElementById('wh-unit').value;
   var notes   = document.getElementById('wh-notes').value.trim();
 
-  if(!product||!qty){ alert('ادخل المنتج والكمية'); return; }
+  if(!product||!qty){ alert(mtype==='transfer' ? 'اختر المنتج وادخل الكمية' : 'ادخل المنتج والكمية'); return; }
   if(mtype==='transfer' && from===to){ alert('المخزن المصدر والوجهة نفسهم!'); return; }
 
   var entry = {
@@ -2022,6 +2169,7 @@ function addWhMove(){
     to: mtype==='transfer'?to:'',
     product: product,
     qty: qty,
+    blocks: blocks || undefined,
     unit: unit,
     notes: notes
   };
@@ -2033,14 +2181,17 @@ function addWhMove(){
     DB.warehouses.push({
       id: Date.now()+Math.random()+1,
       date:date, from:to, type:'in',
-      to:'', product:product, qty:qty, unit:unit,
+      to:'', product:product, qty:qty, blocks: blocks || undefined, unit:unit,
       notes:'نقل من '+from+(notes?' — '+notes:'')
     });
   }
 
   save();
   document.getElementById('wh-product').value='';
+  var pickerEl = document.getElementById('wh-product-picker');
+  if(pickerEl) pickerEl.value='';
   document.getElementById('wh-qty').value='';
+  document.getElementById('wh-blocks').value='';
   document.getElementById('wh-notes').value='';
   renderWarehouses();
   showToast('✅ حركة اتسجلت');
@@ -2061,15 +2212,16 @@ function renderWhBalance(whName, elId){
   var el = document.getElementById(elId);
   if(!el) return;
   var bal = getWhBalance(whName);
-  var items = Object.entries(bal).filter(function(e){ return e[1].qty > 0; });
+  var items = Object.entries(bal).filter(function(e){ return Math.round(e[1].qty*100) !== 0; });
   if(!items.length){
     el.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text2);font-size:12px">المخزن فاضي</div>';
     return;
   }
   el.innerHTML = '<table class="data-table"><thead><tr><th>المنتج</th><th style="text-align:center">الكمية</th><th style="text-align:center">الوحدة</th></tr></thead><tbody>'+
     items.map(function(e){
-      return '<tr><td style="font-weight:700">'+e[0]+'</td>'+
-        '<td style="text-align:center;font-weight:900;color:var(--gold)">'+Math.round(e[1].qty*100)/100+'</td>'+
+      var isNeg = e[1].qty < 0;
+      return '<tr'+(isNeg?' style="background:rgba(192,57,43,.08)"':'')+'><td style="font-weight:700">'+e[0]+(isNeg?' <span style="font-size:10px;color:var(--red2)">(عجز)</span>':'')+'</td>'+
+        '<td style="text-align:center;font-weight:900;color:'+(isNeg?'var(--red2)':'var(--gold)')+'">'+Math.round(e[1].qty*100)/100+'</td>'+
         '<td style="text-align:center;color:var(--text2)">'+e[1].unit+'</td></tr>';
     }).join('')+
   '</tbody></table>';
@@ -2080,12 +2232,13 @@ function renderWhBalance(whName, elId){
 function renderWarehouses(){
   if(!Array.isArray(DB.warehouses)) DB.warehouses=[];
   whFillProducts();
+  whFillPicker();
 
   // KPI
   var bal1 = getWhBalance('ثلاجة السيوف');
   var bal2 = getWhBalance('ثلاجة المصنع');
-  var items1 = Object.values(bal1).filter(function(v){ return v.qty>0; }).length;
-  var items2 = Object.values(bal2).filter(function(v){ return v.qty>0; }).length;
+  var items1 = Object.values(bal1).filter(function(v){ return Math.round(v.qty*100)!==0; }).length;
+  var items2 = Object.values(bal2).filter(function(v){ return Math.round(v.qty*100)!==0; }).length;
 
   var el1 = document.getElementById('wh-soyof-total');
   var el2 = document.getElementById('wh-masna-total');
@@ -2319,8 +2472,7 @@ function getStoredUiPrefs(){
 
 function loadUiPrefsIntoForm(){
   var prefs = getStoredUiPrefs();
-  [['ui-font-scale','fontScale'],['ui-theme','theme'],['ui-density','density'],
-   ['ap-font-scale','fontScale'],['ap-theme','theme'],['ap-density','density'],
+  [['ap-font-scale','fontScale'],['ap-theme','theme'],['ap-density','density'],
    ['ap-card-color','cardColor'],['ap-text-color','textColor']].forEach(function(pair){
     var el = document.getElementById(pair[0]);
     if(el) el.value = prefs[pair[1]];
@@ -2338,10 +2490,9 @@ function closeAppearancePanel(){
 function saveUiPrefs(){
   var key = getUiPrefsKey();
   if(!key) return;
-  // اقرأ من أي واجهة اتحفظت منها (النافذة العامة أو صفحة الإعدادات)
-  var fsEl = document.getElementById('ap-font-scale') || document.getElementById('ui-font-scale');
-  var thEl = document.getElementById('ap-theme') || document.getElementById('ui-theme');
-  var dnEl = document.getElementById('ap-density') || document.getElementById('ui-density');
+  var fsEl = document.getElementById('ap-font-scale');
+  var thEl = document.getElementById('ap-theme');
+  var dnEl = document.getElementById('ap-density');
   var ccEl = document.getElementById('ap-card-color');
   var tcEl = document.getElementById('ap-text-color');
   var prefs = {
@@ -2597,11 +2748,11 @@ function renderUsersList(){
 }
 
 var ROLE_PAGES = {
-  admin: ['dashboard','sales','clients','production','warehouses','settings','agents','expenses','report','visits'],
+  admin: ['dashboard','sales','clients','production','warehouses','settings','agents','expenses','report','visits','supervision'],
   sales: ['sales','clients'],
   store: ['warehouses','production'],
   accounts: ['sales','dashboard','clients','expenses','agents'],
-  agent: ['sales','clients','report','visits']
+  agent: ['sales','clients','report','visits','supervision']
 };
 
 function addUser(){
@@ -2745,13 +2896,28 @@ function doLogin() {
         whFillProducts();
         loadAndApplyUiPrefsOnLogin();
         if(typeof ensureFactoryData==='function') ensureFactoryData(function(){});
+        if(currentUser && currentUser.role==='agent'){
+          var supBtn2 = document.getElementById('nav-supervision');
+          if(supBtn2){
+            var isSup2 = (DB.agents||[]).some(function(a){ return a.supervisor === currentUser.agentName; });
+            supBtn2.style.display = isSup2 ? '' : 'none';
+          }
+        }
         refresh();var e=document.getElementById('fb-status');if(e){e.textContent='☁ متزامن';e.style.color='#27AE60';}});}else setTimeout(tryCloud,2000);}tryCloud();
     // إخفاء التبويبات حسب الصلاحيات
-    var allPages = ['dashboard','clients','sales','production','warehouses','settings','agents','expenses','report','visits'];
+    var allPages = ['dashboard','clients','sales','production','warehouses','settings','agents','expenses','report','visits','supervision'];
     allPages.forEach(function(pg){
       var btn = document.getElementById('nav-'+pg);
       if(btn) btn.style.display = currentUser.pages.indexOf(pg)>=0 ? '' : 'none';
     });
+    // تاب "إشراف" يبان بس لو المندوب ده مشرف فعلاً على حد
+    if(currentUser.role === 'agent'){
+      var supBtn = document.getElementById('nav-supervision');
+      if(supBtn){
+        var isSupervisor = (DB.agents||[]).some(function(a){ return a.supervisor === currentUser.agentName; });
+        supBtn.style.display = isSupervisor ? '' : 'none';
+      }
+    }
     initMonthSelect();
     initDates();
     // اذهب لأول صفحة متاحة
@@ -2815,6 +2981,7 @@ function renderPage(name) {
   else if (name === 'expenses') { renderExpenses(); renderPurchases(); renderSalaries(); populateSupplierList(); }
   else if (name === 'production') { renderProduction(); ensureFactoryData(function(){}); }
   else if (name === 'agents') { renderAgents(); renderAgentRemit(); }
+  else if (name === 'supervision') { renderSupervisionPage(); }
   else if (name === 'visits') { populateAgentSelect(); renderVisitsList(); }
 }
 function refresh() { renderPage(document.querySelector('.page.active').id.replace('page-',''))}
@@ -2936,6 +3103,7 @@ function openSaleProdModal(prodName){
   document.getElementById('sale-pm-qty').value = '';
   document.getElementById('sale-pm-price').value = price || '';
   document.getElementById('sale-pm-discount').value = '';
+  document.getElementById('sale-pm-blocks').value = '';
   document.getElementById('sale-pm-total').textContent = price ? fmtMoney(price) : '0 ج';
   var modal = document.getElementById('sale-prod-modal');
   modal.style.display = 'flex';
@@ -2958,8 +3126,9 @@ function addToSaleCartFromModal(){
   var qty = parseFloat(document.getElementById('sale-pm-qty').value) || 0;
   var price = parseFloat(document.getElementById('sale-pm-price').value) || 0;
   var disc = parseFloat(document.getElementById('sale-pm-discount').value) || 0;
+  var blocks = parseFloat(document.getElementById('sale-pm-blocks').value) || 0;
   if(!qty){ alert('ادخل الكمية'); return; }
-  _saleItems.push({id:'si'+Date.now(), product:_currentSaleProd, qty:qty, price:price, discount:disc});
+  _saleItems.push({id:'si'+Date.now(), product:_currentSaleProd, qty:qty, price:price, discount:disc, blocks: blocks || undefined});
   closeSaleProdModal();
   renderSaleProdGrid();
   renderSaleItems();
@@ -3000,7 +3169,7 @@ function renderSaleItems() {
     return `<div class="si-cart-item">
       <div>
         <div class="si-cart-item-name">${item.product}</div>
-        <div class="si-cart-item-info">${item.qty} × ${fmtMoney(item.price)}${item.discount ? ' (خصم '+item.discount+'%)' : ''}</div>
+        <div class="si-cart-item-info">${item.qty} كجم × ${fmtMoney(item.price)}${item.blocks ? ' — '+item.blocks+' كوز' : ''}${item.discount ? ' (خصم '+item.discount+'%)' : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="si-cart-item-total">${fmtMoney(sub)}</div>
@@ -3134,10 +3303,10 @@ function delSale(rid) {
 
 function populateAgentSelect() {
   var isAgent = currentUser && currentUser.role === 'agent';
-  ['sale-agent','cl-agent','new-user-agent','visit-agent'].forEach(function(selId){
+  ['sale-agent','cl-agent','new-user-agent','visit-agent','ag-supervisor'].forEach(function(selId){
     var sel = document.getElementById(selId);
     if(!sel) return;
-    var placeholder = (selId==='new-user-agent'||selId==='visit-agent') ? '<option value="">اختر المندوب...</option>' : '<option value="">بدون مندوب</option>';
+    var placeholder = (selId==='new-user-agent'||selId==='visit-agent') ? '<option value="">اختر المندوب...</option>' : (selId==='ag-supervisor' ? '<option value="">بدون مشرف</option>' : '<option value="">بدون مندوب</option>');
     sel.innerHTML = placeholder;
     DB.agents.forEach(function(a){ sel.innerHTML += '<option value="'+a.name+'">'+a.name+'</option>'; });
     if(isAgent && (selId==='sale-agent' || selId==='cl-agent')){
@@ -3396,19 +3565,23 @@ function applyRecipeToProduction(){
     }
   });
 
-  // سعر البيع النهائي بنفس معادلة نظام المصنع (زيادة % ثم ربح %)
+  // سعر البيع النهائي بنفس معادلة نظام المصنع (زيادة % ثم ربح %) — سعر الكيلو ثابت، مش بيتأثر بعدد الوجبات
   var totalCost = totalRawCost + fixedCost;
   var costPerKg = netWeight > 0 ? totalCost / netWeight : 0;
   var markup = (parseFloat(recipeData.markup)||0)/100;
   var profit = (parseFloat(recipeData.profit)||0)/100;
   var finalKg = costPerKg * (1+markup) * (1+profit);
 
-  document.getElementById('prod-raw').value = totalWeight ? totalWeight.toFixed(2) : '';
-  document.getElementById('prod-rawcost').value = totalRawCost ? Math.round(totalRawCost) : '';
-  document.getElementById('prod-mfgcost').value = fixedCost ? Math.round(fixedCost) : '';
-  document.getElementById('prod-output').value = netWeight ? netWeight.toFixed(2) : '';
+  // عدد الوجبات: بيضاعف الكميات والتكاليف الإجمالية بس، مش سعر الكيلو نفسه
+  var batches = parseInt(document.getElementById('prod-batches').value) || 1;
+  if(batches < 1) batches = 1;
+
+  document.getElementById('prod-raw').value = totalWeight ? (totalWeight*batches).toFixed(2) : '';
+  document.getElementById('prod-rawcost').value = totalRawCost ? Math.round(totalRawCost*batches) : '';
+  document.getElementById('prod-mfgcost').value = fixedCost ? Math.round(fixedCost*batches) : '';
+  document.getElementById('prod-output').value = netWeight ? (netWeight*batches).toFixed(2) : '';
   document.getElementById('prod-price').value = finalKg ? Math.round(finalKg) : '';
-  showToast('✅ اتحسبت التكلفة والسعر من الوصفة الحقيقية ('+totalWeight.toFixed(2)+' كجم — تكلفة '+fmtMoney(totalCost)+')');
+  showToast('✅ اتحسبت التكلفة والسعر من الوصفة الحقيقية × '+batches+' وجبة ('+(totalWeight*batches).toFixed(2)+' كجم — تكلفة '+fmtMoney(totalRawCost*batches+fixedCost*batches)+')');
 }
 
 function addProduction() {
@@ -3417,6 +3590,8 @@ function addProduction() {
   const output  = parseFloat(document.getElementById('prod-output').value) || 0;
   const raw     = parseFloat(document.getElementById('prod-raw').value) || 0;
   const price   = parseFloat(document.getElementById('prod-price').value) || 0;
+  const blocks  = parseFloat(document.getElementById('prod-blocks').value) || 0;
+  const batches = parseInt(document.getElementById('prod-batches').value) || 1;
   const totalCost = rawcost + mfgcost;
   const foodCost  = output > 0 ? (totalCost / output) : 0;
   const waste     = raw - output;
@@ -3426,7 +3601,8 @@ function addProduction() {
     date: document.getElementById('prod-date').value,
     name: document.getElementById('prod-name').value.trim(),
     raw, output, rawcost, mfgcost, totalCost, foodCost,
-    price, waste, wastePct,
+    price, waste, wastePct, batches,
+    blocks: blocks || undefined,
     notes: document.getElementById('prod-notes').value
   };
   if (!entry.name || entry.name === '') { alert('اختر المنتج'); return; }
@@ -3436,14 +3612,15 @@ function addProduction() {
   DB.warehouses.push({
     id: Date.now()+Math.random(), date: entry.date,
     from: 'ثلاجة المصنع', type: 'in', to: '',
-    product: entry.name, qty: output, unit: 'كجم',
+    product: entry.name, qty: output, blocks: blocks || undefined, unit: 'كجم',
     notes: 'إنتاج تلقائي — تكلفة الكيلو '+fmtMoney(foodCost)
   });
   save();
   document.getElementById('prod-name').value = '';
   var recipeSel = document.getElementById('prod-recipe');
   if(recipeSel) recipeSel.innerHTML = '<option value="">بدون — إدخال يدوي</option>';
-  ['prod-raw','prod-output','prod-rawcost','prod-mfgcost','prod-price'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('prod-batches').value = '1';
+  ['prod-raw','prod-output','prod-rawcost','prod-mfgcost','prod-price','prod-blocks'].forEach(i => document.getElementById(i).value = '');
   renderProduction();
 }
 
@@ -3486,12 +3663,15 @@ function addAgent() {
     phone: document.getElementById('ag-phone').value.trim(),
     salary: parseFloat(document.getElementById('ag-salary').value) || 0,
     commission: parseFloat(document.getElementById('ag-commission').value) || 0,
-    vehicle: parseFloat(document.getElementById('ag-vehicle').value) || 0
+    vehicle: parseFloat(document.getElementById('ag-vehicle').value) || 0,
+    supervisor: document.getElementById('ag-supervisor').value || '',
+    supervisionRate: parseFloat(document.getElementById('ag-supervision-rate').value) || 0
   };
   if (!entry.name) { alert('ادخل اسم المندوب'); return; }
   if (DB.agents.find(a => a.name === entry.name)) { alert('المندوب موجود'); return; }
   DB.agents.push(entry); save(); showToast('✅ مندوب اتضاف');
-  ['ag-name','ag-phone','ag-salary','ag-commission','ag-vehicle'].forEach(i => document.getElementById(i).value = '');
+  ['ag-name','ag-phone','ag-salary','ag-commission','ag-vehicle','ag-supervision-rate'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('ag-supervisor').value = '';
   renderAgents(); populateAgentSelect();
 }
 
@@ -3620,11 +3800,18 @@ function renderAgents() {
     const salesTotal = agSales.reduce((x,r) => x + r.amount, 0);
     const totalPaid  = agSales.reduce((x,r) => x + (r.type==='cash'?r.amount:(r.paidAmount||0)), 0);
     const commission = totalPaid * a.commission / 100;
-    const totalCost  = a.salary + commission + a.vehicle;
+    // عمولة الإشراف: نسبة من تحصيل المناديب اللي تحته
+    const supervised = DB.agents.filter(x => x.supervisor === a.name);
+    const supervisionCommission = supervised.reduce((sum, s) => {
+      const sPaid = DB.sales.filter(r => r.agent === s.name)
+        .reduce((x,r) => x + (r.type==='cash'?r.amount:(r.paidAmount||0)), 0);
+      return sum + (sPaid * (a.supervisionRate||0) / 100);
+    }, 0);
+    const totalCost  = a.salary + commission + supervisionCommission + a.vehicle;
     const inputStyle = 'background:var(--dark4);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:Tajawal,sans-serif;font-size:11px;color:var(--text)';
     return `<div class="agent-card">
       <div class="agent-hdr">
-        <div class="agent-name">🚗 ${a.name}${a.phone?' <span style="font-size:11px;color:var(--text2);font-weight:400">📞 '+a.phone+'</span>':''}</div>
+        <div class="agent-name">🚗 ${a.name}${a.phone?' <span style="font-size:11px;color:var(--text2);font-weight:400">📞 '+a.phone+'</span>':''}${a.supervisor?' <span style="font-size:10px;color:var(--gold);background:rgba(201,168,76,.15);border-radius:6px;padding:2px 7px;margin-right:6px">تحت إشراف: '+a.supervisor+'</span>':''}${supervised.length?' <span style="font-size:10px;color:#2980b9;background:rgba(41,128,185,.15);border-radius:6px;padding:2px 7px;margin-right:6px">👤 مشرف على '+supervised.length+'</span>':''}</div>
         <button class="btn danger" onclick="delAgent('${a.id}')">🗑</button>
       </div>
       <div class="agent-stats">
@@ -3633,6 +3820,7 @@ function renderAgents() {
         <div class="prod-stat"><div class="prod-stat-val">${fmtMoney(commission)}</div><div class="prod-stat-label">عمولة ${a.commission}%</div></div>
         <div class="prod-stat"><div class="prod-stat-val red" style="color:var(--red2)">${fmtMoney(totalCost)}</div><div class="prod-stat-label">إجمالي التكلفة</div></div>
       </div>
+      ${supervisionCommission ? `<div style="font-size:11px;color:var(--gold);margin-bottom:8px">👤 عمولة إشراف على (${supervised.map(s=>s.name).join('، ')}) بنسبة ${a.supervisionRate}%: <b>${fmtMoney(supervisionCommission)}</b></div>` : ''}
       <div style="font-size:11px;color:var(--text2);display:flex;gap:16px;margin-bottom:8px">
         <span>مرتب: <b>${fmtMoney(a.salary)}</b></span>
         <span>إيجار عربية: <b>${fmtMoney(a.vehicle)}</b></span>
@@ -3669,7 +3857,6 @@ function addExpense() {
   };
   if (!entry.amount) { alert('ادخل المبلغ'); return; }
   DB.expenses.push(entry);
-  console.log('Added expense, total:', DB.expenses.length);
   save();
   document.getElementById('exp-amount').value = '';
   document.getElementById('exp-notes').value = '';
@@ -3721,7 +3908,6 @@ function addSalary() {
   };
   if (!entry.name || !entry.amount) { alert('ادخل الاسم والمرتب'); return; }
   DB.salaries.push(entry);
-  console.log('Added salary, total:', DB.salaries.length);
   save();
   document.getElementById('sal-name').value = '';
   ['sal-role','sal-amount','sal-bonus'].forEach(i => document.getElementById(i).value = '');
