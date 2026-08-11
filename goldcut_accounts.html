@@ -3284,13 +3284,6 @@ function delPurchase(rid) {
 // ── ربط الإنتاج بوصفات نظام المصنع (قراءة فقط) ──
 var FACTORY_DATA = null;
 // يتأكد إن اسم المنتج مستخدم في أي مكان تاريخي قبل ما نمسحه، عشان محدش يفقد بيانات فواتير قديمة
-function isProductUsedHistorically(name){
-  if((DB.sales||[]).some(function(r){ return (r.items||[]).some(function(i){ return i.product===name; }); })) return true;
-  if((DB.production||[]).some(function(r){ return r.name===name; })) return true;
-  if((DB.warehouses||[]).some(function(r){ return r.product===name; })) return true;
-  return false;
-}
-
 function ensureFactoryData(cb){
   if(FACTORY_DATA){ cb(); return; }
   if(!window.loadFactoryData){ cb(); return; }
@@ -3301,8 +3294,8 @@ function ensureFactoryData(cb){
   });
 }
 
-// المنتجات وترتيبها بيتطابقوا بالكامل مع نظام الوصفات — أي منتج مش موجود هناك بيتشال هنا كمان،
-// إلا لو كان مستخدم في فاتورة/إنتاج/مخزن قديم، ففي الحالة دي بيتسيب ويتوضح ليه
+// المنتجات وترتيبها بتبقى مطابقة تمامًا لنظام الوصفات (نفس القايمة، نفس الترتيب)
+// الفواتير القديمة بتحتفظ باسم المنتج جواها بشكل مستقل، فمحتاجاش المنتج يفضل في القايمة عشانها
 function syncProductsFromFactory(silent){
   if(!FACTORY_DATA || !FACTORY_DATA.products) return;
   var orderedNames = [];
@@ -3312,20 +3305,6 @@ function syncProductsFromFactory(silent){
   order.forEach(function(key){
     var nameAr = FACTORY_DATA.products[key];
     if(nameAr) orderedNames.push(nameAr);
-  });
-
-  // أي منتج عندنا مش موجود في نظام الوصفات: يتشال إلا لو مستخدم في بيانات قديمة
-  var keptDueToHistory = [];
-  var removed = [];
-  ALL_PRODUCTS.forEach(function(p){
-    if(orderedNames.indexOf(p) === -1){
-      if(isProductUsedHistorically(p)){
-        orderedNames.push(p);
-        keptDueToHistory.push(p);
-      } else {
-        removed.push(p);
-      }
-    }
   });
 
   var changed = orderedNames.length !== ALL_PRODUCTS.length ||
@@ -3341,11 +3320,6 @@ function syncProductsFromFactory(silent){
   if(typeof whFillProducts==='function') whFillProducts();
   if(typeof renderPricesList==='function') renderPricesList();
   if(typeof renderSaleProdGrid==='function') renderSaleProdGrid();
-
-  if(!silent && keptDueToHistory.length){
-    showToast('⚠️ '+keptDueToHistory.length+' منتج مش موجود في الوصفات بس اتسيب لأنه مستخدم في فواتير قديمة');
-    console.log('منتجات اتسيبت لأنها مستخدمة تاريخيًا:', keptDueToHistory);
-  }
 }
 
 // يدور على كود المنتج في نظام المصنع اللي اسمه العربي مطابق لاسم المنتج هنا
