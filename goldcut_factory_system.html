@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/Mina/Downloads/goldcut_windows_40.html -->
 <html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,12 +93,6 @@ tr.used .qty-input{border-color:rgba(204,255,0,.4);background:rgba(204,255,0,.06
 .sum-row.final-kg .sum-val{color:var(--gold);font-size:15px;font-weight:700;}
 .sum-row.nitrite .sum-val{color:var(--phosphor);font-size:12px;}
 .actual-wt-input{background:var(--dark3);border:1px solid var(--gold);border-radius:7px;padding:6px 10px;width:120px;font-family:'Tajawal',sans-serif;font-size:13px;color:var(--gold);text-align:center;outline:none;}
-
-.save-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;padding:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--dark);cursor:pointer;margin-top:10px;letter-spacing:1px;transition:opacity .2s;}
-.save-btn:hover{opacity:.9;}
-
-/* History */
-.empty-state{text-align:center;color:var(--text2);padding:40px 20px;font-size:13px;}
 
 .stab{background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-family:Tajawal,sans-serif;font-size:13px;color:var(--text2);cursor:pointer;}
 .stab.active{background:var(--gold);color:#000;font-weight:700;border-color:var(--gold);}
@@ -969,7 +962,7 @@ function toggleSection(id) {
 // ── LOAD PRODUCT ──────────────────────────────────────────────
 function loadProduct() {
   const key = document.getElementById('product-select').value;
-  currentRecipe = RECIPES[key];
+  currentRecipe = RECIPES[key] || { meats:{}, spices:{}, boxSize:3, fixedOverride:{} };
   const saved = loadSaved(key);
   // تأكد من نسخ عميقة
   const srcMeats  = saved ? saved.meats  : currentRecipe.meats;
@@ -1779,9 +1772,12 @@ function loadFactorySettings(){
     var d = JSON.parse(s);
     if(d.meats && d.meats.length){ ALL_MEATS.length=0; d.meats.forEach(function(m){ALL_MEATS.push(m);}); }
     if(d.spices && d.spices.length){ ALL_SPICES.length=0; d.spices.forEach(function(m){ALL_SPICES.push(m);}); }
-    if(d.products) Object.assign(FACTORY_PRODUCTS, d.products);
+    if(d.products){
+      Object.keys(FACTORY_PRODUCTS).forEach(function(k){ delete FACTORY_PRODUCTS[k]; });
+      Object.assign(FACTORY_PRODUCTS, d.products);
+    }
     if(d.productOrder && d.productOrder.length){ PRODUCT_ORDER.length=0; d.productOrder.forEach(function(k){PRODUCT_ORDER.push(k);}); }
-    // أي منتج قديم مش موجود في الترتيب يتضاف في الآخر (أمان لبيانات قبل الميزة دي)
+    // أي منتج في السحابة مش موجود في الترتيب (حالة نادرة) يتضاف في الآخر
     Object.keys(FACTORY_PRODUCTS).forEach(function(k){ if(PRODUCT_ORDER.indexOf(k)===-1) PRODUCT_ORDER.push(k); });
     if(d.prices) Object.assign(PRICES, d.prices);
     if(d.fixed && d.fixed.length){ FIXED.length=0; d.fixed.forEach(function(f){FIXED.push(f);}); }
@@ -1828,9 +1824,12 @@ try{
       var d = snap.data();
       if(d.meats && d.meats.length){ ALL_MEATS.length=0; d.meats.forEach(function(m){ALL_MEATS.push(m);}); }
       if(d.spices && d.spices.length){ ALL_SPICES.length=0; d.spices.forEach(function(m){ALL_SPICES.push(m);}); }
-      if(d.products) Object.assign(FACTORY_PRODUCTS, d.products);
+      if(d.products){
+        Object.keys(FACTORY_PRODUCTS).forEach(function(k){ delete FACTORY_PRODUCTS[k]; });
+        Object.assign(FACTORY_PRODUCTS, d.products);
+      }
       if(d.productOrder && d.productOrder.length){ PRODUCT_ORDER.length=0; d.productOrder.forEach(function(k){PRODUCT_ORDER.push(k);}); }
-      // أي منتج مش موجود في الترتيب (بيانات قديمة) يتضاف في الآخر
+      // أي منتج في السحابة مش موجود في الترتيب (حالة نادرة) يتضاف في الآخر
       Object.keys(FACTORY_PRODUCTS).forEach(function(k){ if(PRODUCT_ORDER.indexOf(k)===-1) PRODUCT_ORDER.push(k); });
       if(d.prices) Object.assign(PRICES, d.prices);
       if(d.fixed && d.fixed.length){ FIXED.length=0; d.fixed.forEach(function(f){FIXED.push(f);}); }
