@@ -47,6 +47,7 @@ window.getRawMovements=function(){
   var mv=[];
   (DB.purchases||[]).forEach(function(p){(p.items||[]).forEach(function(it){if(it&&it.raw&&it.item&&(parseFloat(it.qty)||0)){mv.push({date:p.date||"",item:String(it.item).trim(),qty:n2(it.qty),kind:"in",label:"مشتريات — "+(p.supplier||""),ref:"pur",id:p.id})}})});
   (DB.production||[]).forEach(function(pr){var ing=pr.ingredients||{};Object.keys(ing).forEach(function(k){var q=parseFloat(ing[k])||0;if(q)mv.push({date:pr.date||"",item:k,qty:-n2(q),kind:"out",label:"تصنيع — "+(pr.name||"")+(pr.batches?" × "+fmtBatches(pr.batches):""),ref:"prod",id:pr.id})})});
+  (DB.production||[]).forEach(function(pr){var bp=pr.byproducts||{};Object.keys(bp).forEach(function(k){var q=parseFloat(bp[k])||0;if(q)mv.push({date:pr.date||"",item:k,qty:n2(q),kind:"in",label:"ناتج تصنيع — "+(pr.name||""),ref:"prod",id:pr.id})})});
   (DB.rawAdjust||[]).forEach(function(a){mv.push({date:a.date||"",item:a.item,qty:n2(a.qty),kind:"adj",label:({opening:"رصيد افتتاحي",count:"جرد فعلي",add:"إضافة يدوية",waste:"هالك / تالف"}[a.type]||"تسوية")+(a.notes?" — "+a.notes:""),ref:"adj",id:a.id,createdAt:a.createdAt||0})});
   mv.sort(function(a,b){return a.date===b.date?(a.kind==="adj"&&b.kind==="adj"?(a.createdAt||0)-(b.createdAt||0):(a.kind==="adj"?1:0)-(b.kind==="adj"?1:0)):(a.date<b.date?-1:1)});
   return mv;
@@ -182,16 +183,16 @@ var wantQuick=/[?&#]quick/.test(location.search+location.hash),quickDone=false;
 setInterval(function(){var f=$("gc-fab"),ok=canUse();if(f)f.style.display=ok?"block":"none";if(ok&&wantQuick&&!quickDone){quickDone=true;gcOpenQuick()}},800);
 function supplierGroups(){var seen={},list=[];(DB.purchases||[]).slice().sort(function(a,b){return(b.date||"").localeCompare(a.date||"")}).forEach(function(p){var s=(p.supplier||"").trim();if(s&&!seen[s]){seen[s]=1;list.push(s)}});return[{title:"الموردين السابقين",items:list}]}
 function itemGroups(){var g=[];try{var l=getRawItemLists();if(l.meats.length)g.push({title:"لحوم (بتدخل مخزون الخامات)",items:l.meats.slice().sort()});if(l.spices.length)g.push({title:"بهارات وإضافات (بتدخل مخزون الخامات)",items:l.spices.slice().sort()})}catch(e){}
-  var seen={};g.forEach(function(x){x.items.forEach(function(i){seen[i]=1})});var other=[];(DB.purchases||[]).forEach(function(p){(p.items||[{item:p.item}]).forEach(function(it){var n=(it&&it.item||"").trim();if(n&&!seen[n]){seen[n]=1;other.push(n)}})});if(other.length)g.push({title:"بنود اشتريتها قبل كده",items:other.sort()});return g}
-window.gcOpenPicker=function(title,groups,onPick){pick={groups:groups,onPick:onPick};$("gc-pick-title").textContent=title;$("gc-pick-search").value="";gcRenderPick();$("gc-pick-bg").style.display="flex";setTimeout(function(){$("gc-pick-search").focus()},100)};
+  try{var pk=getPackItems();if(pk.length)g.push({title:"تغليف ومستلزمات (من سيستم الوصفات)",items:pk})}catch(e){}return g}
+window.gcOpenPicker=function(title,groups,onPick,noNew){pick={groups:groups,onPick:onPick,noNew:!!noNew};$("gc-pick-title").textContent=title;$("gc-pick-search").value="";gcRenderPick();$("gc-pick-bg").style.display="flex";setTimeout(function(){$("gc-pick-search").focus()},100)};
 window.gcClosePick=function(){$("gc-pick-bg").style.display="none"};
-window.gcRenderPick=function(){var q=$("gc-pick-search").value.trim(),h="";if(q)h+='<div class="gc-opt" data-v="'+esc(q)+'" onclick="gcPicked(this.dataset.v)"><span>➕ استخدم: <b>'+esc(q)+'</b></span></div>';
+window.gcRenderPick=function(){var q=$("gc-pick-search").value.trim(),h="";if(q&&!pick.noNew)h+='<div class="gc-opt" data-v="'+esc(q)+'" onclick="gcPicked(this.dataset.v)"><span>➕ استخدم: <b>'+esc(q)+'</b></span></div>';
   pick.groups.forEach(function(g){var it=g.items.filter(function(x){return !q||x.indexOf(q)>=0});if(!it.length)return;h+='<div class="gc-grp">'+esc(g.title)+'</div>'+it.map(function(x){return'<div class="gc-opt" data-v="'+esc(x)+'" onclick="gcPicked(this.dataset.v)"><span>'+esc(x)+'</span></div>'}).join("")});
-  $("gc-pick-list").innerHTML=h||'<div style="padding:16px;color:var(--text2)">مفيش نتايج — اكتب الاسم فوق</div>'};
+  $("gc-pick-list").innerHTML=h||'<div style="padding:16px;color:var(--text2)">'+(pick.noNew?"البند ده مش موجود في سيستم الوصفات — ضيفه هناك الأول وهيظهر هنا لوحده":"مفيش نتايج — اكتب الاسم فوق")+'</div>'};
 window.gcPicked=function(v){var f=pick.onPick;gcClosePick();f&&f(v)};
 function setTarget(id,v){var el=$(id);if(!el)return;if(el.tagName==="INPUT"){el.value=v;el.dispatchEvent(new Event("input",{bubbles:true}))}else{el.textContent=v;el.dataset.v=v;el.classList.remove("empty")}}
 window.gcPickSupplier=function(id){gcOpenPicker("اختار المورد",supplierGroups(),function(v){setTarget(id,v)})};
-window.gcPickPurItem=function(id){var go=function(){gcOpenPicker("اختار البند",itemGroups(),function(v){setTarget(id,v);var q=$(id==="pur-item"?"pur-qty":"gcq-pur-qty");q&&q.focus()})};try{ensureFactoryData(go)}catch(e){go()}};
+window.gcPickPurItem=function(id){var go=function(){gcOpenPicker("اختار البند",itemGroups(),function(v){setTarget(id,v);var q=$(id==="pur-item"?"pur-qty":"gcq-pur-qty");q&&q.focus()},true)};try{gcRefreshFactory(go)}catch(e){go()}};
 window.gcOpenQuick=function(){qCart=[];renderCart();var t=today();$("gcq-exp-date").value=t;$("gcq-pur-date").value=t;
   $("gcq-exp-types").innerHTML=EXP_TYPES.map(function(x){return'<button class="gc-chip'+(x[0]===qType?" on":"")+'" data-t="'+x[0]+'" onclick="gcSetType(this.dataset.t)">'+x[1]+'</button>'}).join("");
   $("gc-quick-bg").style.display="flex";try{ensureFactoryData(function(){})}catch(e){}};
@@ -213,5 +214,108 @@ window.gcSavePurchase=function(){var sb=$("gcq-pur-supplier"),sup=(sb.dataset.v|
   var items=qCart.map(function(e){return{item:e.item,qty:e.qty,amount:e.amount,raw:isRawItemName(e.item)}}),tot=items.reduce(function(s,e){return s+(e.amount||0)},0);
   DB.purchases.push({id:id(),date:$("gcq-pur-date").value||today(),supplier:sup,notes:$("gcq-pur-notes").value.trim(),items:items,amount:tot,qty:items.reduce(function(s,e){return s+(e.qty||0)},0)});save();
   qCart=[];renderCart();clearItem();sb.dataset.v="";sb.textContent="اختار المورد...";sb.classList.add("empty");$("gcq-pur-notes").value="";after();showToast("✅ فاتورة الشراء اتسجلت — "+fmtMoney(tot));gcCloseQuick()};
+})();
+</script><script>
+/* ===== Gold Cut patch: purchases items / client merge / actual-weight batches + trim ===== */
+(function(){
+var TRIM="نتر بسطرمة",TRIM_PRICE=230;
+function $(i){return document.getElementById(i)}
+function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+function isAdmin(){try{return currentUser&&currentUser.role==="admin"}catch(e){return false}}
+function num(v){var x=parseFloat(v);return isNaN(x)?0:x}
+function n2(x){return Math.round((parseFloat(x)||0)*1000)/1000}
+var fmtKg=window.fmtKg||function(x){return(Math.round((+x||0)*100)/100).toLocaleString("en-US")};
+
+/* ---------- 1) purchases ---------- */
+var OVERHEAD=/كهرباء|إيجار|ايجار|عمالة|تصنيع/;
+window.getPackItems=function(){if(typeof FACTORY_DATA==="undefined"||!FACTORY_DATA)return[];return(FACTORY_DATA.fixed||[]).map(function(f){return f&&f.n}).filter(function(n){return n&&!OVERHEAD.test(n)}).sort()};
+window.isPurchasableItem=function(n){n=String(n||"").trim();return !!n&&(isRawItemName(n)||getPackItems().indexOf(n)>=0)};
+window.gcRefreshFactory=function(cb){var old=typeof FACTORY_DATA!=="undefined"?FACTORY_DATA:null;FACTORY_DATA=null;ensureFactoryData(function(){if(!FACTORY_DATA||!(FACTORY_DATA.meats||[]).length)FACTORY_DATA=old;try{fillRawItemsDatalist();fillPackDatalist()}catch(e){}cb&&cb()})};
+window.fillPackDatalist=function(){var dl=$("raw-items-datalist");if(!dl)return;getPackItems().forEach(function(x){dl.innerHTML+='<option value="'+esc(x)+'">تغليف</option>'})};
+var _addPI=window.addPurchaseItem;
+window.addPurchaseItem=function(){var el=$("pur-item"),v=el?el.value.trim():"";if(v&&!isPurchasableItem(v)){alert("«"+v+"» مش موجود في سيستم الوصفات.\nاختار البند من القايمة 📋 — ولو خامة جديدة ضيفها في سيستم الوصفات الأول وهتظهر هنا لوحدها.");return}return _addPI.apply(this,arguments)};
+var _fill=window.fillRawItemsDatalist;window.fillRawItemsDatalist=function(){_fill.apply(this,arguments);try{fillPackDatalist()}catch(e){}};
+document.addEventListener("focusin",function(e){if(e.target&&e.target.id==="pur-item"&&!e.target._gcR){e.target._gcR=1;gcRefreshFactory(function(){});setTimeout(function(){e.target._gcR=0},60000)}});
+
+/* ---------- 2) duplicate clients: merge into the oldest ---------- */
+function nk(s){return String(s||"").replace(/[ً-ْـ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/ڤ/g,"ف").replace(/[٠-٩]/g,function(d){return"٠١٢٣٤٥٦٧٨٩".indexOf(d)}).replace(/^ال/,"").replace(/\s+/g,"").toLowerCase()}
+function lev(a,b){var d=[],i,j;for(j=0;j<=b.length;j++)d[j]=j;for(i=1;i<=a.length;i++){var p=d[0];d[0]=i;for(j=1;j<=b.length;j++){var t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[b.length]}
+function similar(x,y){var a=nk(x.name),b=nk(y.name);if(!a||!b)return false;if(a===b)return true;var L=Math.max(a.length,b.length);if(lev(a,b)<=Math.max(1,Math.floor(L*.2)))return true;if(Math.min(a.length,b.length)>=4&&(a.indexOf(b)>=0||b.indexOf(a)>=0))return true;var pa=String(x.phone||"").replace(/\D/g,"").slice(-10),pb=String(y.phone||"").replace(/\D/g,"").slice(-10);return pa.length>=9&&pa===pb}
+function age(c){var k=parseInt(c.code,10);return isNaN(k)?1e12+num(c.id):k}
+window.findDuplicateClients=function(){var cl=(DB.clients||[]).filter(function(c){return c.name&&c.name.trim()}),seen={},out=[];
+  for(var i=0;i<cl.length;i++){if(seen[cl[i].id])continue;var g=[cl[i]];for(var j=i+1;j<cl.length;j++){if(seen[cl[j].id])continue;if(g.some(function(x){return similar(x,cl[j])}))g.push(cl[j])}
+    if(g.length>1&&!g.every(function(c){return c._dupIgnored})){g.forEach(function(c){seen[c.id]=1});out.push(g.sort(function(a,b){return age(a)-age(b)}))}}
+  return out};
+function invCount(n){return(DB.sales||[]).filter(function(s){return s.client===n}).length}
+window.mergeClientInto=function(fromId,toId){var A=(DB.clients||[]).find(function(c){return c.id==fromId}),B=(DB.clients||[]).find(function(c){return c.id==toId});if(!A||!B||A===B)return;
+  var n=invCount(A.name);if(!confirm("ضم «"+A.name+"» في «"+B.name+"»؟\n\n• "+n+" فاتورة هتتنقل باسم «"+B.name+"»\n• «"+A.name+"» هيتمسح من العملاء"))return;
+  var moved=0;Object.keys(DB).forEach(function(k){if(!Array.isArray(DB[k])||k==="clients")return;DB[k].forEach(function(r){if(r&&typeof r==="object"){if(r.client===A.name){r.client=B.name;moved++}if(r.clientName===A.name){r.clientName=B.name;moved++}}})});
+  ["phone","address"].forEach(function(f){if(!B[f]&&A[f])B[f]=A[f]});if(A.phone&&B.phone&&A.phone!==B.phone)B.notes=((B.notes||"")+" — تليفون تاني: "+A.phone).replace(/^ — /,"");if(A.notes&&String(B.notes||"").indexOf(A.notes)<0)B.notes=((B.notes||"")+" — "+A.notes).replace(/^ — /,"");if(!B.agent&&A.agent)B.agent=A.agent;
+  recordTombstone("clients",A.id);DB.clients=DB.clients.filter(function(c){return c.id!=A.id});save();
+  try{renderClients()}catch(e){}try{populateClientSelect()}catch(e){}try{renderDuplicateClients()}catch(e){}try{renderMergeTool()}catch(e){}
+  showToast("✅ اتضم — "+moved+" سجل اتنقل لـ "+B.name)};
+window.renderDuplicateClients=function(){var sec=$("dup-clients-section"),box=$("dup-clients-list");if(!sec||!box)return;
+  if(!isAdmin()){sec.style.display="none";return}
+  var gs=findDuplicateClients();if(!gs.length){sec.style.display="none";return}sec.style.display="block";
+  box.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">الأقدم (أصغر كود) هو الأساسي. «ضم للقديم» بينقل كل فواتيره للعميل القديم ويمسحه. لو مش نفس العميل دوس «مش مكررين».</div>'+gs.map(function(g){var main=g[0],ids=g.map(function(c){return c.id});
+    return'<div style="background:var(--dark3);border-radius:8px;padding:10px 12px;margin-bottom:8px">'+g.map(function(c,i){
+      return'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;flex-wrap:wrap"><span style="font-size:13px">'+(c.code?'<b style="color:var(--gold)">#'+c.code+'</b> ':'')+esc(c.name)+(c.agent?' <span style="color:var(--text2);font-size:11px">🚗 '+esc(c.agent)+'</span>':'')+(c.phone?' <span style="color:var(--text2);font-size:11px">📞 '+esc(c.phone)+'</span>':'')+' <span style="color:var(--text2);font-size:11px">('+invCount(c.name)+' فاتورة)</span></span>'+
+      (i===0?'<span style="font-size:11px;color:#27AE60;font-weight:700">⭐ الأساسي (القديم)</span>':'<button class="btn primary" style="font-size:11px;padding:4px 10px" data-f="'+c.id+'" data-t="'+main.id+'" onclick="mergeClientInto(this.dataset.f,this.dataset.t)">🔗 ضم للقديم</button>')+'</div>'}).join("")+
+      '<div style="text-align:left;margin-top:6px;border-top:1px solid var(--border);padding-top:6px"><button class="btn secondary" style="font-size:10px;padding:3px 10px" onclick=\'dismissDuplicateClientGroup('+JSON.stringify(ids)+')\'>🙈 مش مكررين</button></div></div>'}).join("")};
+window.renderMergeTool=function(){var sec=$("dup-clients-section");if(!sec)return;var w=$("gc-merge-tool");if(!isAdmin()){w&&(w.style.display="none");return}
+  if(!w){w=document.createElement("div");w.id="gc-merge-tool";w.className="section";w.style.marginBottom="12px";sec.parentNode.insertBefore(w,sec.nextSibling)}
+  w.style.display="";var cl=(DB.clients||[]).slice().sort(function(a,b){return age(a)-age(b)}),o=cl.map(function(c){return'<option value="'+c.id+'">'+(c.code?"#"+c.code+" ":"")+esc(c.name)+'</option>'}).join("");
+  var a=$("gc-mg-from"),b=$("gc-mg-to"),va=a&&a.value,vb=b&&b.value;
+  w.innerHTML='<div class="section-hdr"><div class="section-title">🔗 دمج عميلين يدوي</div></div><div class="section-body"><div class="form-grid"><div class="form-field"><label>العميل المكرر (هيتمسح)</label><select id="gc-mg-from"><option value="">اختر...</option>'+o+'</select></div><div class="form-field"><label>يتضم في العميل الأساسي</label><select id="gc-mg-to"><option value="">اختر...</option>'+o+'</select></div></div><button class="btn primary" style="margin-top:8px" onclick="if(!gcMgOk())return;mergeClientInto(document.getElementById(\'gc-mg-from\').value,document.getElementById(\'gc-mg-to\').value)">🔗 ضم الفواتير وامسح المكرر</button></div>';
+  va&&($("gc-mg-from").value=va);vb&&($("gc-mg-to").value=vb)};
+window.gcMgOk=function(){var a=$("gc-mg-from").value,b=$("gc-mg-to").value;if(!a||!b){alert("اختار العميلين");return false}if(a===b){alert("اختار عميلين مختلفين");return false}return true};
+var _rc=window.renderClients;window.renderClients=function(){var r=_rc.apply(this,arguments);try{renderDuplicateClients();renderMergeTool()}catch(e){}return r};
+
+/* ---------- 3) actual-weight batch (bastirma) + trim ---------- */
+function prices(){return(typeof FACTORY_DATA!=="undefined"&&FACTORY_DATA&&FACTORY_DATA.prices)||{}}
+function trimPrice(){var p=num(prices()[TRIM]);return p>0?p:TRIM_PRICE}
+window.gcEnsureTrimItem=function(){try{if(typeof FACTORY_DATA==="undefined"||!FACTORY_DATA||!(FACTORY_DATA.meats||[]).length)return;var m=FACTORY_DATA.meats,need=m.indexOf(TRIM)<0,np=!(num(prices()[TRIM])>0);if(!need&&!np)return;
+  need&&m.push(TRIM);FACTORY_DATA.prices=FACTORY_DATA.prices||{};np&&(FACTORY_DATA.prices[TRIM]=TRIM_PRICE);
+  var FV=firebase.firestore.FieldValue,ref=_db.collection("goldcut").doc("factory_settings");
+  (np?ref.update("meats",FV.arrayUnion(TRIM),new firebase.firestore.FieldPath("prices",TRIM),TRIM_PRICE):ref.update("meats",FV.arrayUnion(TRIM))).catch(function(e){console.log("trim item",e)})}catch(e){console.log("trim item",e)}};
+function baseRecipe(prod,rv){if(typeof FACTORY_DATA==="undefined"||!FACTORY_DATA)return null;var k=findFactoryProductKey(prod);if(!k)return null;if(rv==="default")return FACTORY_DATA.recipes[k]||null;if(String(rv).indexOf("variant:")===0){var vk=findVariantKey(k,String(rv).slice(8));return vk?FACTORY_DATA.variants[k][vk]:null}return null}
+function isBast(p){return/^بسطرم/.test(String(p||"").trim())}
+function poRows(){return[].slice.call(document.querySelectorAll("#po-actual-rows .gc-ar")).map(function(r){return{m:r.querySelector("select").value,q:num(r.querySelector("input").value)}}).filter(function(x){return x.m&&x.q>0})}
+function meatOptions(sel){var l=[];try{l=getRawItemLists().meats.slice().sort()}catch(e){}return'<option value="">اختر اللحمة...</option>'+l.map(function(x){return'<option value="'+esc(x)+'"'+(x===sel?" selected":"")+'>'+esc(x)+'</option>'}).join("")}
+window.gcPoAddRow=function(m,q){var box=$("po-actual-rows");if(!box)return;var d=document.createElement("div");d.className="gc-ar";d.style.cssText="display:flex;gap:6px;margin-bottom:6px";d.innerHTML='<select style="flex:2" onchange="updatePoCostPreview()">'+meatOptions(m)+'</select><input type="number" inputmode="decimal" min="0" step="0.1" placeholder="كجم" style="flex:1" value="'+(q?q:"")+'" oninput="updatePoCostPreview()"><button type="button" class="btn sm" style="background:var(--red2);color:#fff" onclick="this.parentNode.remove();updatePoCostPreview()">✕</button>';box.appendChild(d)};
+window.gcPoFillFromRecipe=function(){var box=$("po-actual-rows");if(!box)return;box.innerHTML="";var r=baseRecipe($("po-product").value,$("po-recipe").value),any=0;if(r)Object.keys(r.meats||{}).forEach(function(k){var q=num(r.meats[k]);if(q>0){gcPoAddRow(k,q);any=1}});any||gcPoAddRow("",0);updatePoCostPreview()};
+window.gcPoActualToggle=function(){var on=$("po-actual").checked;$("po-actual-box").style.display=on?"":"none";var bf=$("po-batches");bf&&(bf.closest(".form-field").style.opacity=on?".35":"");if(on)ensureFactoryData(gcPoFillFromRecipe);else updatePoCostPreview()};
+function actualCalc(){var t=$("po-product").value,n=$("po-recipe").value,rows=poRows();if(!t||!n||!rows.length)return null;var r=baseRecipe(t,n);if(!r)return null;
+  var meats={},tot=0;rows.forEach(function(x){meats[x.m]=n2((meats[x.m]||0)+x.q);tot+=x.q});tot=n2(tot);
+  var baseTot=0;Object.keys(r.meats||{}).forEach(function(k){baseTot+=num(r.meats[k])});var f=baseTot>0?tot/baseTot:1;
+  var P=prices(),raw=0,ing={};Object.keys(meats).forEach(function(k){raw+=meats[k]*num(P[k]);ing[k]=meats[k]});
+  Object.keys(r.spices||{}).forEach(function(k){var q=num(r.spices[k])*f;if(q>0){ing[k]=n2((ing[k]||0)+q);raw+=q*num(P[k])}});
+  var c=computeRecipeCost(t,n,f)||{fixedCost:0,realFixedCost:0,netWeight:tot,costPerKg:0,finalKg:0};var net=c.netWeight||tot,ck=net>0?(raw+c.fixedCost)/net:0,mult=c.costPerKg>0?c.finalKg/c.costPerKg:1;
+  return{meats:meats,total:tot,factor:f,ingredients:ing,rawcost:raw,fixed:c.fixedCost,realFixed:c.realFixedCost,net:net,costKg:ck,finalKg:ck*mult}}
+var _upc=window.updatePoCostPreview;window.updatePoCostPreview=function(){var cb=$("po-actual");if(!cb||!cb.checked)return _upc.apply(this,arguments);var e=$("po-cost-preview");if(!e)return;
+  ensureFactoryData(function(){var a=actualCalc();if(!a){e.style.display="none";return}var tray=$("po-unit-tray").checked,s=num($("po-trayweight").value);
+    e.innerHTML="⚖️ إجمالي اللحمة: <b>"+fmtKg(a.total)+" كجم</b> (= "+a.factor.toFixed(2)+" من الوصفة) — البهارات اتحسبت بنفس النسبة — الوزن المتوقع: <b>"+a.net.toFixed(2)+" كجم</b> — تكلفة الخامات: <b>"+fmtMoney(a.rawcost)+"</b> — تكلفة التصنيع: <b>"+fmtMoney(a.fixed)+"</b> — "+(tray&&s?"سعر بيع الطبق المتوقع: <b style=\"color:var(--gold)\">"+fmtMoney(a.finalKg*s)+"</b>":"سعر بيع الكيلو المتوقع: <b style=\"color:var(--gold)\">"+fmtMoney(a.finalKg)+"</b>");e.style.display="block"})};
+var _cpo=window.createProductionOrder;window.createProductionOrder=function(){var cb=$("po-actual");if(!cb||!cb.checked)return _cpo.apply(this,arguments);
+  var date=$("po-date").value||today(),t=$("po-product").value,n=$("po-recipe").value,w=$("po-worker").value,notes=$("po-notes").value,tray=$("po-unit-tray").checked,s=num($("po-trayweight").value),sl=parseInt($("po-shelflife").value)||0;
+  if(!t)return void alert("اختر المنتج");if(!n)return void alert("اختر الوصفة الأساسية (البهارات والتكاليف بتتحسب منها)");if(!poRows().length)return void alert("اكتب وزن اللحمة الفعلي");if(!w)return void alert("اختر العامل المسؤول");if(tray&&!s)return void alert("ادخل وزن الطبق");
+  ensureFactoryData(function(){var a=actualCalc();if(!a)return void alert("مش لاقي الوصفة الأساسية في سيستم الوصفات");
+    var o={id:id(),date:date,product:t,recipeVal:n,batches:1,actualWeights:true,baseFactor:n2(a.factor),worker:w,meats:a.meats,totalMeatsWeight:a.total,notes:notes,status:"pending",createdAt:Date.now(),rawcost:a.rawcost,mfgcost:a.fixed,realMfgcost:a.realFixed,unit:tray?"طبق":"كجم",unitWeight:tray?s:1,price:tray?a.finalKg*s:a.finalKg,shelfLifeDays:sl,warehouse:"ثلاجة المصنع",ingredients:a.ingredients};
+    DB.productionOrders.push(o);save();$("po-product").value="";populatePoRecipeSelect();$("po-batches").value="1";$("po-worker").value="";$("po-notes").value="";$("po-trayweight").value="";$("po-shelflife").value="";cb.checked=false;gcPoActualToggle();updatePoCostPreview();
+    showToast("✅ اتبعت أمر إنتاج بالأوزان الفعلية لـ "+w);try{renderOrdersQueue()}catch(e){}})};
+var _oml=window.orderMeatsLabel;window.orderMeatsLabel=function(e){return e&&e.actualWeights?"الأوزان الفعلية للوجبة:":_oml.apply(this,arguments)};
+function trimField(idp){return'<div class="form-field gc-trim"><label>نتر خارج من الوجبة (كجم)</label><input type="number" inputmode="decimal" min="0" step="0.1" id="'+idp+'" placeholder="0"><div style="font-size:11px;color:var(--text2);margin-top:3px">بيدخل مخزون الخامات كـ «'+TRIM+'» بسعر '+trimPrice()+' ج</div></div>'}
+var _rmo=window.renderMyOrders;window.renderMyOrders=function(){var r=_rmo.apply(this,arguments);try{(DB.productionOrders||[]).forEach(function(o){if(o.status!=="pending"||!(o.actualWeights||isBast(o.product)))return;if($("mo-trim-"+o.id))return;var a=$("mo-output-"+o.id)||$("mo-traycount-"+o.id);if(!a)return;var ff=a.closest(".form-field");ff&&ff.insertAdjacentHTML("afterend",trimField("mo-trim-"+o.id))})}catch(e){}return r};
+window.gcApplyTrim=function(pr,kg){if(!pr||!(kg>0))return;gcEnsureTrimItem();var pz=trimPrice(),val=kg*pz;pr.byproducts=Object.assign({},pr.byproducts||{});pr.byproducts[TRIM]=n2(kg);pr.trimKg=n2(kg);pr.trimPct=pr.raw>0?Math.round(kg/pr.raw*1000)/10:0;pr.trimValue=n2(val);
+  pr.rawcost=n2((pr.rawcost||0)-val);pr.totalCost=n2((pr.totalCost||0)-val);pr.foodCost=pr.output>0?pr.totalCost/pr.output:0;pr.notes=(pr.notes?pr.notes+" — ":"")+"نتر: "+fmtKg(kg)+" كجم ("+pr.trimPct+"% من اللحمة) دخل مخزون الخامات بقيمة "+fmtMoney(val)};
+var _spo=window.submitProductionOrder;window.submitProductionOrder=function(e){var ti=$("mo-trim-"+e),kg=ti?num(ti.value):0;var r=_spo.apply(this,arguments);if(kg>0){var o=(DB.productionOrders||[]).find(function(x){return x.id==e});if(o&&o.status==="done"&&o.result){var pr=(DB.production||[]).find(function(x){return x.id==o.result.productionId});if(pr){gcApplyTrim(pr,kg);o.result.trimKg=n2(kg);save();try{renderRawStock()}catch(x){}showToast("✅ اتسجل — والنتر "+fmtKg(kg)+" كجم دخل مخزون الخامات")}}}return r};
+var _ap=window.addProduction;window.addProduction=function(){var ti=$("prod-trim"),kg=ti?num(ti.value):0,before=(DB.production||[]).length;var r=_ap.apply(this,arguments);if(kg>0&&(DB.production||[]).length>before){gcApplyTrim(DB.production[DB.production.length-1],kg);save();ti.value="";try{renderRawStock();renderProduction()}catch(x){}}return r};
+function injectUI(){
+  var pb=$("po-batches");if(pb&&!$("po-actual")){var ff=pb.closest(".form-field");ff.insertAdjacentHTML("afterend",'<div class="form-field" style="grid-column:1/-1;background:var(--dark3);border:1px dashed var(--gold3,#8a6d1d);border-radius:10px;padding:10px 12px"><label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:700;color:var(--gold)"><input type="checkbox" id="po-actual" onchange="gcPoActualToggle()" style="width:auto"> ⚖️ وجبة بأوزانها الفعلية — من غير ما تعمل وصفة جديدة (للبسطرمة)</label><div id="po-actual-box" style="display:none;margin-top:8px"><div style="font-size:12px;color:var(--text2);margin-bottom:6px">اكتب وزن كل لحمة اتوزنت فعلاً للوجبة دي. البهارات والتكاليف بتتحسب لوحدها بالنسبة من الوصفة المختارة فوق.</div><div id="po-actual-rows"></div><button type="button" class="btn sm" onclick="gcPoAddRow(\'\',0)">➕ لحمة تانية</button></div></div>');
+    var pp=$("po-product");pp&&pp.addEventListener("change",function(){var c=$("po-actual");if(c){c.checked=isBast(pp.value);gcPoActualToggle()}});
+    var pr=$("po-recipe");pr&&pr.addEventListener("change",function(){var c=$("po-actual");c&&c.checked&&gcPoFillFromRecipe()})}
+  var po=$("prod-output");if(po&&!$("prod-trim")){var f2=po.closest(".form-field");f2&&f2.insertAdjacentHTML("afterend",trimField("prod-trim"))}
+  if(typeof FACTORY_DATA!=="undefined"&&FACTORY_DATA&&!window._gcTrimChecked){window._gcTrimChecked=1;gcEnsureTrimItem()}
+}
+setInterval(injectUI,1500);
 })();
 </script></body></html>

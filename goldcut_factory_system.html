@@ -1842,6 +1842,9 @@ try{
       if(d.fixed && d.fixed.length){ FIXED.length=0; d.fixed.forEach(function(f){FIXED.push(f);}); }
       if(d.recipes){ window._gcRecipes = d.recipes; }
       if(d.variants){ window._gcVariants = d.variants; }
+      // نتر البسطرمة: خامة لحوم ثابتة بسعر افتراضي 230 (بيدخل المخزون من إنتاج البسطرمة)
+      if(ALL_MEATS.indexOf('نتر بسطرمة')===-1) ALL_MEATS.push('نتر بسطرمة');
+      if(!(parseFloat(PRICES['نتر بسطرمة'])>0)) PRICES['نتر بسطرمة'] = 230;
       if(typeof updateProductSelect === 'function') updateProductSelect();
       if(typeof loadProduct === 'function') loadProduct();
       if(typeof renderVariantsList === 'function') renderVariantsList();
